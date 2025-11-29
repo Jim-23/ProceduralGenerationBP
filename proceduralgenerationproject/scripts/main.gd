@@ -127,4 +127,10 @@ func _place_player_on_floor(map: Array) -> void:
 
 	var tile_pos: Vector2i = floor_tiles[randi() % floor_tiles.size()]
 	var world_pos: Vector2 = tilemap.map_to_local(tile_pos)
+	
+	# Adjust for tile size to place player at the bottom-center of the tile
+	# Get tile size from the tilemap
+	var tile_size: Vector2i = tilemap.tile_set.tile_size
+	world_pos.y += tile_size.y / 2
+	
 	player.global_position = world_pos

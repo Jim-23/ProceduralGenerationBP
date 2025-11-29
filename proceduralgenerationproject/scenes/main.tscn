@@ -4,9 +4,10 @@
 [ext_resource type="TileSet" uid="uid://htsy2stofpfi" path="res://tilesets/DungeonTileset.tres" id="1_o5qli"]
 [ext_resource type="PackedScene" uid="uid://ci6xv1na1j7qb" path="res://scenes/player.tscn" id="3_sugp2"]
 
-[node name="Main" type="Node2D" node_paths=PackedStringArray("tilemap")]
+[node name="Main" type="Node2D" node_paths=PackedStringArray("tilemap", "player")]
 script = ExtResource("1_0wfyh")
 tilemap = NodePath("DungeonLayer")
+player = NodePath("Player")
 
 [node name="Player" parent="." instance=ExtResource("3_sugp2")]
 
