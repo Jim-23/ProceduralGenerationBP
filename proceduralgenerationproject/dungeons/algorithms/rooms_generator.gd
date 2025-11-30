@@ -5,18 +5,18 @@ const TILE_EMPTY: int = 0
 const TILE_FLOOR: int = 1
 const TILE_WALL: int = 2
 
-static func generate(width: int, height: int) -> Array:
+static func generate(width: int, height: int):
 	randomize()
 
-	# 2D array: dungeon_grid[y][x] = TILE_*
-	var dungeon_grid: Array = []
+	# 2D array: map[y][x] = TILE_*
+	var map: Array = []
 
 	# fill with EMPTY
 	for y: int in range(height):
 		var row: Array = []
 		for x: int in range(width):
 			row.append(TILE_EMPTY)
-		dungeon_grid.append(row)
+		map.append(row)
 
 	var rooms: Array[Rect2] = []
 	var max_attempts: int = 100
@@ -43,25 +43,24 @@ static func generate(width: int, height: int) -> Array:
 			# carve room floors
 			for iy: int in range(y, y + h):
 				for ix: int in range(x, x + w):
-					dungeon_grid[iy][ix] = TILE_FLOOR
+					map[iy][ix] = TILE_FLOOR
 
 			# connect to previous room with corridor
 			if rooms.size() > 1:
 				var prev_center: Vector2 = rooms[rooms.size() - 2].get_center()
 				var curr_center: Vector2 = room.get_center()
-				_carve_corridor(dungeon_grid, prev_center, curr_center, width, height)
+				_carve_corridor(map, prev_center, curr_center, width, height)
 
 		tries += 1
 
 	# add walls around floors
-	_add_walls(dungeon_grid, width, height)
+	_add_walls(map, width, height)
+	return map
 
-	return dungeon_grid
 
-
-static func _carve_corridor(dungeon_grid: Array, from: Vector2, to: Vector2, width: int, height: int, corridor_width: int = 2) -> void:
-	var min_width: int = -corridor_width / 2
-	var max_width: int = corridor_width / 2
+static func _carve_corridor(map: Array, from: Vector2, to: Vector2, width: int, height: int, corridor_width: int = 2) -> void:
+	var min_width: int = int(-(corridor_width * 0.5))
+	var max_width: int = int(corridor_width * 0.5)
 
 	var from_int: Vector2i = Vector2i(int(from.x), int(from.y))
 	var to_int: Vector2i = Vector2i(int(to.x), int(to.y))
@@ -72,42 +71,50 @@ static func _carve_corridor(dungeon_grid: Array, from: Vector2, to: Vector2, wid
 			for offset: int in range(min_width, max_width + 1):
 				var y: int = from_int.y + offset
 				if _is_in_bounds(x, y, width, height):
-					(dungeon_grid[y] as Array)[x] = TILE_FLOOR
+					if (map[y] as Array)[x] != TILE_FLOOR:
+						(map[y] as Array)[x] = TILE_FLOOR
+
 
 		# vertical
 		for y: int in range(min(from_int.y, to_int.y), max(from_int.y, to_int.y) + 1):
 			for offset: int in range(min_width, max_width + 1):
 				var x: int = to_int.x + offset
 				if _is_in_bounds(x, y, width, height):
-					(dungeon_grid[y] as Array)[x] = TILE_FLOOR
+					if (map[y] as Array)[x] != TILE_FLOOR:
+						(map[y] as Array)[x] = TILE_FLOOR
+
 	else:
 		# vertical first
 		for y: int in range(min(from_int.y, to_int.y), max(from_int.y, to_int.y) + 1):
 			for offset: int in range(min_width, max_width + 1):
 				var x: int = from_int.x + offset
 				if _is_in_bounds(x, y, width, height):
-					(dungeon_grid[y] as Array)[x] = TILE_FLOOR
+					if (map[y] as Array)[x] != TILE_FLOOR:
+						(map[y] as Array)[x] = TILE_FLOOR
+
 
 		# horizontal
 		for x: int in range(min(from_int.x, to_int.x), max(from_int.x, to_int.x) + 1):
 			for offset: int in range(min_width, max_width + 1):
 				var y: int = to_int.y + offset
 				if _is_in_bounds(x, y, width, height):
-					(dungeon_grid[y] as Array)[x] = TILE_FLOOR
+					if (map[y] as Array)[x] != TILE_FLOOR:
+						(map[y] as Array)[x] = TILE_FLOOR
+
 
 
 static func _is_in_bounds(x: int, y: int, width: int, height: int) -> bool:
 	return x >= 0 and y >= 0 and x < width and y < height
 
 
-static func _add_walls(dungeon_grid: Array, width: int, height: int) -> void:
+static func _add_walls(map: Array, width: int, height: int) -> void:
 	for y: int in range(height):
 		for x: int in range(width):
-			if (dungeon_grid[y] as Array)[x] == TILE_FLOOR:
+			if (map[y] as Array)[x] == TILE_FLOOR:
 				for dy: int in range(-1, 2):
 					for dx: int in range(-1, 2):
 						var nx: int = x + dx
 						var ny: int = y + dy
 						if _is_in_bounds(nx, ny, width, height):
-							if (dungeon_grid[ny] as Array)[nx] == TILE_EMPTY:
-								(dungeon_grid[ny] as Array)[nx] = TILE_WALL
+							if (map[ny] as Array)[nx] == TILE_EMPTY:
+								(map[ny] as Array)[nx] = TILE_WALL

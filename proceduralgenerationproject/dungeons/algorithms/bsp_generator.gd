@@ -17,7 +17,7 @@ class Region:
 		w = _w
 		h = _h
 
-static func generate(width: int, height: int) -> Array:
+static func generate(width: int, height: int):
 	var map: Array = []
 
 	# Start with all walls
@@ -36,13 +36,23 @@ static func generate(width: int, height: int) -> Array:
 	var max_regions: int = 8
 	var min_size: int = 10
 
+	var attempts: int = 0
+	var max_attempts: int = 10
+
 	# Split regions
-	while regions.size() < max_regions:
-		var region: Region = regions.pop_back()
-		if region == null:
+	while regions.size() < max_regions and attempts < max_attempts:
+		attempts += 1
+	
+		# Pick a random region to split instead of pop_back
+		if regions.is_empty():
 			break
+			
+		var region_index: int = rng.randi_range(0, regions.size() - 1)
+		var region: Region = regions[region_index]
+		regions.remove_at(region_index)
 
 		var split_vertical: bool = rng.randi_range(0, 1) == 0
+		var split_success: bool = false
 
 		if split_vertical and region.w >= min_size * 2:
 			var split_x: int = rng.randi_range(region.x + min_size, region.x + region.w - min_size)
@@ -50,16 +60,18 @@ static func generate(width: int, height: int) -> Array:
 			var right: Region = Region.new(split_x, region.y, region.x + region.w - split_x, region.h)
 			regions.append(left)
 			regions.append(right)
+			split_success = true
 		elif not split_vertical and region.h >= min_size * 2:
 			var split_y: int = rng.randi_range(region.y + min_size, region.y + region.h - min_size)
 			var top: Region    = Region.new(region.x, region.y, region.w, split_y - region.y)
 			var bottom: Region = Region.new(region.x, split_y, region.w, region.y + region.h - split_y)
 			regions.append(top)
 			regions.append(bottom)
-		else:
+			split_success = true
+		
+		# Only add back if we couldn't split
+		if not split_success:
 			regions.append(region)
-			if regions.size() >= max_regions:
-				break
 
 	# Carve rooms in regions and connect centers
 	var centers: Array = []
@@ -81,8 +93,8 @@ static func generate(width: int, height: int) -> Array:
 					continue
 				(map[y2] as Array)[x2] = TILE_FLOOR
 
-		var cx: int = rx + rw / 2
-		var cy: int = ry + rh / 2
+		var cx: int = rx + int(rw * 0.5)
+		var cy: int = ry + int(rh * 0.5)
 		centers.append(Vector2i(cx, cy))
 
 	# Connect centers with corridors
@@ -94,8 +106,10 @@ static func generate(width: int, height: int) -> Array:
 		var x_step: int = 1 if b.x > a.x else -1
 		var x: int = a.x
 		while x != b.x:
-			if x > 0 and x < width - 1 and a.y > 0 and a.y < height - 1:
+			if x > 0 and x < width - 1 and a.y > 0 and a.y < height - 2:
 				(map[a.y] as Array)[x] = TILE_FLOOR
+				(map[a.y + 1] as Array)[x] = TILE_FLOOR 
+
 			x += x_step
 
 		# Vertical
@@ -104,6 +118,10 @@ static func generate(width: int, height: int) -> Array:
 		while y != b.y:
 			if b.x > 0 and b.x < width - 1 and y > 0 and y < height - 1:
 				(map[y] as Array)[b.x] = TILE_FLOOR
+				(map[y + 1] as Array)[b.x + 1] = TILE_FLOOR
 			y += y_step
+
+			y += y_step
+
 
 	return map

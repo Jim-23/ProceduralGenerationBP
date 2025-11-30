@@ -8,6 +8,7 @@ const TILE_WALL: int = 2
 static func generate(width: int, height: int) -> Array:
 	var map: Array = []
 
+
 	# Start with all walls
 	for y: int in range(height):
 		var row: Array = []
@@ -16,8 +17,8 @@ static func generate(width: int, height: int) -> Array:
 		map.append(row)
 
 	# Maze grid: treat every 2nd tile as a cell; between them are walls
-	var cells_w: int = int((width - 1) / 2)
-	var cells_h: int = int((height - 1) / 2)
+	var cells_w: int = int((width - 1) * 0.75)
+	var cells_h: int = int((height - 1) * 0.75)
 
 	if cells_w <= 0 or cells_h <= 0:
 		return map
@@ -65,14 +66,31 @@ static func generate(width: int, height: int) -> Array:
 			var next: Vector2i = neighbours[0]
 
 			# Convert cell coords to tile coords
-			var x1: int = current.x * 2 + 1
-			var y1: int = current.y * 2 + 1
-			var x2: int = next.x * 2 + 1
-			var y2: int = next.y * 2 + 1
+			var x1: int = current.x * 3 + 1
+			var y1: int = current.y * 3 + 1
+			var x2: int = next.x * 3 + 1
+			var y2: int = next.y * 3 + 1
 
-			(map[y1] as Array)[x1] = TILE_FLOOR
-			(map[y2] as Array)[x2] = TILE_FLOOR
-			(map[(y1 + y2) / 2] as Array)[(x1 + x2) / 2] = TILE_FLOOR
+			for dy: int in range(2):
+				for dx: int in range(2):
+					if y1 + dy < height and x1 + dx < width:
+						(map[y1 + dy] as Array)[x1 + dx] = TILE_FLOOR
+					if y2 + dy < height and x2 + dx < width:
+						(map[y2 + dy] as Array)[x2 + dx] = TILE_FLOOR
+			# Carve 2-wide corridor between cells
+			if x1 == x2:  # Vertical connection
+				for dy: int in range(abs(y2 - y1) + 2):
+					var y_pos: int = min(y1, y2) + dy
+					for dx: int in range(2):
+						if y_pos < height and x1 + dx < width:
+							(map[y_pos] as Array)[x1 + dx] = TILE_FLOOR
+			else:  # Horizontal connection
+				for dx: int in range(abs(x2 - x1) + 2):
+					var x_pos: int = min(x1, x2) + dx
+					for dy: int in range(2):
+						if y1 + dy < height and x_pos < width:
+							(map[y1 + dy] as Array)[x_pos] = TILE_FLOOR
+
 
 			(visited[next.y] as Array)[next.x] = true
 			stack.append(next)

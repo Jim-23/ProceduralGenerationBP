@@ -18,8 +18,9 @@ static func generate(width: int, height: int) -> Array:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.randomize()
 
-	var x: int = width / 2
-	var y: int = height / 2
+	var x: int = int(width * 0.5) # using * 0.5 instead of / 2 so we dont get a warning about float to int conversion
+	var y: int = int(height * 0.5) # using * 0.5 instead of / 2 so we dont get a warning about float to int conversion
+
 	(map[y] as Array)[x] = TILE_FLOOR
 
 	var target_floor_count: int = int(width * height * 0.35)
@@ -44,5 +45,6 @@ static func generate(width: int, height: int) -> Array:
 		if (map[y] as Array)[x] == TILE_WALL:
 			(map[y] as Array)[x] = TILE_FLOOR
 			current_floor_count += 1
+
 
 	return map

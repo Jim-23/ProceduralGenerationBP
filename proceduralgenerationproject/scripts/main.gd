@@ -28,6 +28,15 @@ const DUNGEON_HEIGHT := 80
 @onready var width_input: SpinBox              = $UI/Panel/Buttons/Width
 @onready var height_input: SpinBox             = $UI/Panel/Buttons/Height
 
+
+class DungeonData:
+	var map: Array
+	var floor_tiles: Array[Vector2i]
+
+	func _init(p_map: Array, p_floor_tiles: Array[Vector2i]) -> void:
+		map = p_map
+		floor_tiles = p_floor_tiles
+
 func _ready() -> void:
 	randomize()
 
@@ -41,31 +50,15 @@ func _ready() -> void:
 	width_input.value = DUNGEON_WIDTH
 	height_input.value = DUNGEON_HEIGHT
 
-	_debug_draw_single_tile()
-	if tilemap == null:
-		push_warning("TileMapLayer not assigned in 'tilemap' export.")
-	
-	
-	
-func _debug_draw_single_tile() -> void:
-	if tilemap == null:
-		push_warning("TileMapLayer not assigned.")
-		return
 
-	var pos := Vector2i(0, 0)
-	tilemap.set_cell(pos, TILE_SOURCE_ID, TILE_FLOOR_POS)
-	tilemap.update_internals()
-	print("Placed debug tile at ", pos)
-
-# This is the function your Button's 'pressed' signal should call
-# Make sure the signal is connected to THIS name:
-#   _on_generate_button_pressed
+# based on the selected dungeon, you will run the algorithm which returns you a dungeon data (map, floor tiles and wall tiles)
 func _on_generate_button_pressed() -> void:
 	print("Pressed")
 	var width: int = int(width_input.value)
 	var height: int = int(height_input.value)
 
 	var map: Array = []
+	var floor_tiles: Array[Vector2i] = []
 
 	match dungeon_type_option.selected:
 		0:
@@ -81,18 +74,18 @@ func _on_generate_button_pressed() -> void:
 			return
 
 	print("Generated map with rows: ", map.size())
-	_draw_map(map)
-	_place_player_on_floor(map)
+	floor_tiles = _draw_map(map)
+	_place_player_on_floor(floor_tiles)
 
 
-func _draw_map(map: Array) -> void:
+func _draw_map(map: Array) -> Array[Vector2i]:
 	if tilemap == null:
-		return
-
+		return []
+	var floor_tiles: Array[Vector2i] = []
 	tilemap.clear()
 
 	if map.is_empty():
-		return
+		return []
 
 	for y: int in range(map.size()):
 		var row: Array = map[y]
@@ -105,32 +98,47 @@ func _draw_map(map: Array) -> void:
 					tilemap.erase_cell(pos)
 				TileType.FLOOR:
 					tilemap.set_cell(pos, TILE_SOURCE_ID, TILE_FLOOR_POS)
+					floor_tiles.append(pos)
 				TileType.WALL:
 					tilemap.set_cell(pos, TILE_SOURCE_ID, TILE_WALL_POS)
 
-func _place_player_on_floor(map: Array) -> void:
+	return floor_tiles
+
+func _place_player_on_floor(floor_tiles: Array[Vector2i]) -> void:
 	if player == null:
 		push_warning("Player is not assigned, cannot place player.")
 		return
 	
-	var floor_tiles: Array[Vector2i] = []
-
-	for y: int in range(map.size()):
-		var row: Array = map[y]
-		for x: int in range(row.size()):
-			if row[x] == TileType.FLOOR:
-				floor_tiles.append(Vector2i(x, y))
-
 	if floor_tiles.is_empty():
 		push_warning("No floor tiles found to place player.")
 		return
 
-	var tile_pos: Vector2i = floor_tiles[randi() % floor_tiles.size()]
-	var world_pos: Vector2 = tilemap.map_to_local(tile_pos)
+	# Convert floor_tiles to a set for O(1) lookup
+	var floor_set: Dictionary = {}
+	for tile in floor_tiles:
+		floor_set[tile] = true
+
+	# Find a 2x2 area of floor tiles and place the player in the center
+	for tile in floor_tiles:
+		if _is_valid_2x2_position(tile, floor_set):
+			# Place player at the center of the 2x2 area (tile is top-left corner)
+			var center_tile: Vector2i = tile + Vector2i(1, 1)
+			var world_pos: Vector2 = tilemap.map_to_local(center_tile)
+			player.global_position = world_pos
+			print("Player placed at tile: ", center_tile, " (world: ", world_pos, ")")
+			return
 	
-	# Adjust for tile size to place player at the bottom-center of the tile
-	# Get tile size from the tilemap
-	var tile_size: Vector2i = tilemap.tile_set.tile_size
-	world_pos.y += tile_size.y / 2
-	
-	player.global_position = world_pos
+	# Fallback: if no 2x2 area found, place on a random floor tile
+	push_warning("No 2x2 floor area found, placing player on random floor tile.")
+	var random_tile: Vector2i = floor_tiles[randi() % floor_tiles.size()]
+	player.global_position = tilemap.map_to_local(random_tile)
+
+
+func _is_valid_2x2_position(top_left: Vector2i, floor_set: Dictionary) -> bool:
+	# Check if all 4 tiles in a 2x2 grid starting from top_left are floor tiles
+	for dy in range(2):
+		for dx in range(2):
+			var check_pos: Vector2i = top_left + Vector2i(dx, dy)
+			if not floor_set.has(check_pos):
+				return false
+	return true
