@@ -20,11 +20,11 @@ class Region:
 static func generate(width: int, height: int):
 	var map: Array = []
 
-	# Start with all walls
+	# Start with all EMPTY - walls will be added around floors at the end
 	for y: int in range(height):
 		var row: Array = []
 		for x: int in range(width):
-			row.append(TILE_WALL)
+			row.append(TILE_EMPTY)
 		map.append(row)
 
 	var regions: Array = []
@@ -123,5 +123,19 @@ static func generate(width: int, height: int):
 
 			y += y_step
 
-
+	# Add walls around floor tiles
+	_add_walls(map, width, height)
 	return map
+
+
+static func _add_walls(map: Array, width: int, height: int) -> void:
+	for y: int in range(height):
+		for x: int in range(width):
+			if (map[y] as Array)[x] == TILE_FLOOR:
+				for dy: int in range(-1, 2):
+					for dx: int in range(-1, 2):
+						var nx: int = x + dx
+						var ny: int = y + dy
+						if nx >= 0 and nx < width and ny >= 0 and ny < height:
+							if (map[ny] as Array)[nx] == TILE_EMPTY:
+								(map[ny] as Array)[nx] = TILE_WALL

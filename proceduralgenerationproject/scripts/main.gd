@@ -96,11 +96,12 @@ func _draw_map(map: Array) -> Array[Vector2i]:
 			match tile_type:
 				TileType.EMPTY:
 					tilemap.erase_cell(pos)
+				TileType.WALL:
+					tilemap.set_cell(pos, TILE_SOURCE_ID, TILE_WALL_POS)
 				TileType.FLOOR:
 					tilemap.set_cell(pos, TILE_SOURCE_ID, TILE_FLOOR_POS)
 					floor_tiles.append(pos)
-				TileType.WALL:
-					tilemap.set_cell(pos, TILE_SOURCE_ID, TILE_WALL_POS)
+				
 
 	return floor_tiles
 
@@ -118,26 +119,26 @@ func _place_player_on_floor(floor_tiles: Array[Vector2i]) -> void:
 	for tile in floor_tiles:
 		floor_set[tile] = true
 
-	# Find a 2x2 area of floor tiles and place the player in the center
+	# Find a 3x3 area of floor tiles and place the player in the center
 	for tile in floor_tiles:
-		if _is_valid_2x2_position(tile, floor_set):
-			# Place player at the center of the 2x2 area (tile is top-left corner)
+		if _is_valid_3x3_position(tile, floor_set):
+			# Place player at the center of the 3x3 area (tile is top-left corner)
 			var center_tile: Vector2i = tile + Vector2i(1, 1)
 			var world_pos: Vector2 = tilemap.map_to_local(center_tile)
 			player.global_position = world_pos
 			print("Player placed at tile: ", center_tile, " (world: ", world_pos, ")")
 			return
-	
-	# Fallback: if no 2x2 area found, place on a random floor tile
-	push_warning("No 2x2 floor area found, placing player on random floor tile.")
+
+	# Fallback: if no 3x3 area found, place on a random floor tile
+	push_warning("No 3x3 floor area found, placing player on random floor tile.")
 	var random_tile: Vector2i = floor_tiles[randi() % floor_tiles.size()]
 	player.global_position = tilemap.map_to_local(random_tile)
 
 
-func _is_valid_2x2_position(top_left: Vector2i, floor_set: Dictionary) -> bool:
-	# Check if all 4 tiles in a 2x2 grid starting from top_left are floor tiles
-	for dy in range(2):
-		for dx in range(2):
+func _is_valid_3x3_position(top_left: Vector2i, floor_set: Dictionary) -> bool:
+	# Check if all 9 tiles in a 3x3 grid starting from top_left are floor tiles
+	for dy in range(3):
+		for dx in range(3):
 			var check_pos: Vector2i = top_left + Vector2i(dx, dy)
 			if not floor_set.has(check_pos):
 				return false
