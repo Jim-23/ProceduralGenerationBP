@@ -20,8 +20,8 @@ const TILE_WALL_POS  := Vector2i(2, 0)
 const TILE_SOURCE_ID := 0   # usually 0 for a single atlas image
 
 # Default dungeon size
-const DUNGEON_WIDTH  := 80
-const DUNGEON_HEIGHT := 80
+const DUNGEON_WIDTH  := 40
+const DUNGEON_HEIGHT := 40
 
 # UI references
 @onready var dungeon_type_option: OptionButton = $UI/Panel/Buttons/DungeonType
