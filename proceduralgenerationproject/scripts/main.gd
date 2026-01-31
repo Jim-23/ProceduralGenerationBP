@@ -1,7 +1,6 @@
 extends Node2D
-# If your root node is just Node, you can also do: extends Node
 
-# TileMapLayer from the scene (set this in Inspector)
+# TileMapLayer from the scene
 @export var tilemap: TileMapLayer
 @export var player: CharacterBody2D
 
@@ -14,10 +13,10 @@ const DrunkenGenerator    = preload("res://dungeons/algorithms/drunken_generator
 # Logical tile types that generators should use
 enum TileType { EMPTY, FLOOR, WALL }
 
-# Tile atlas positions (change to match your tileset)
+# Tile atlas positions
 const TILE_FLOOR_POS := Vector2i(8, 1)
 const TILE_WALL_POS  := Vector2i(2, 0)
-const TILE_SOURCE_ID := 0   # usually 0 for a single atlas image
+const TILE_SOURCE_ID := 0
 
 # Default dungeon size
 const DUNGEON_WIDTH  := 40

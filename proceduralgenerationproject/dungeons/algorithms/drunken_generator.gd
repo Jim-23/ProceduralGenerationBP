@@ -8,7 +8,7 @@ const TILE_WALL: int = 2
 static func generate(width: int, height: int) -> Array:
 	var map: Array = []
 
-	# Start with all EMPTY - walls will be added around floors at the end
+	# Start with all EMPTY - walls will be added around flooors at the end
 	for y: int in range(height):
 		var row: Array = []
 		for x: int in range(width):
