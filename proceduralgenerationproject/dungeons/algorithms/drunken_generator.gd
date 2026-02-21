@@ -1,4 +1,18 @@
 # res://dungeons/algorithms/drunken_generator.gd
+#
+# drunkard's walk dungeon generator
+#
+# how it works:
+#   1. start at the center of the map
+#   2. carve a 3x3 area at the start so the player always has a safe spawn
+#   3. move one step in a random direction (up/down/left/right)
+#   4. every 15-25 steps carve a small 3x3 room, otherwise carve a 2x2 corridor
+#   5. stop when 35% of the map is floor
+#   6. add walls around all floor tiles
+#
+# produces organic winding dungeons - everything is naturally connected
+# because all floor tiles are carved from one continuous walk
+
 extends RefCounted
 
 const TILE_EMPTY: int = 0
@@ -6,9 +20,8 @@ const TILE_FLOOR: int = 1
 const TILE_WALL: int = 2
 
 static func generate(width: int, height: int) -> Array:
+	# start with an empty map
 	var map: Array = []
-
-	# Start with all EMPTY - walls will be added around flooors at the end
 	for y: int in range(height):
 		var row: Array = []
 		for x: int in range(width):
@@ -18,50 +31,48 @@ static func generate(width: int, height: int) -> Array:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.randomize()
 
-	var x: int = int(width * 0.5) # using * 0.5 instead of / 2 so we dont get a warning about float to int conversion
-	var y: int = int(height * 0.5) # using * 0.5 instead of / 2 so we dont get a warning about float to int conversion
+	# start the walk at the center
+	var x: int = int(width * 0.5)
+	var y: int = int(height * 0.5)
 
 	(map[y] as Array)[x] = TILE_FLOOR
 
+	# keep going until 35% of tiles are floor
 	var target_floor_count: int = int(width * height * 0.35)
 	var current_floor_count: int = 1
 
-	# Carve initial 3x3 area at starting position for guaranteed spawn point
+	# carve the guaranteed 3x3 spawn area
 	current_floor_count += _carve_3x3(map, x - 1, y - 1, width, height)
 
 	var steps_since_room: int = 0
 
 	while current_floor_count < target_floor_count:
+		# move one step in a random direction
 		var dir: int = rng.randi_range(0, 3)
 		match dir:
-			0:
-				x += 1
-			1:
-				x -= 1
-			2:
-				y += 1
-			3:
-				y -= 1
+			0: x += 1
+			1: x -= 1
+			2: y += 1
+			3: y -= 1
 
-		# Stay inside bounds (leave 3 tile border for 3x3 carving)
+		# stay 2 tiles away from the edge so 3x3 carves never go out of bounds
 		x = clamp(x, 2, width - 4)
 		y = clamp(y, 2, height - 4)
 
 		steps_since_room += 1
 
-		# Every 15-25 steps, carve a 3x3 area to create small rooms
+		# carve a room every 15-25 steps, otherwise just carve a small corridor
 		if steps_since_room > rng.randi_range(15, 25):
 			current_floor_count += _carve_3x3(map, x - 1, y - 1, width, height)
 			steps_since_room = 0
 		else:
-			# Carve a 2x2 area for corridors
 			current_floor_count += _carve_2x2(map, x, y, width, height)
 
-	# Add walls around floor tiles
 	_add_walls(map, width, height)
 	return map
 
 
+# carves a 3x3 area, returns how many new floor tiles were created
 static func _carve_3x3(map: Array, x: int, y: int, width: int, height: int) -> int:
 	var carved_count: int = 0
 	for dy in range(3):
@@ -75,6 +86,7 @@ static func _carve_3x3(map: Array, x: int, y: int, width: int, height: int) -> i
 	return carved_count
 
 
+# carves a 2x2 area, returns how many new floor tiles were created
 static func _carve_2x2(map: Array, x: int, y: int, width: int, height: int) -> int:
 	var carved_count: int = 0
 	for dy in range(2):

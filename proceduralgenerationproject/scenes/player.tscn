@@ -48,4 +48,7 @@ shape = SubResource("CircleShape2D_qhqgy")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(50, 6)
-zoom = Vector2(2, 2)
+scale = Vector2(1, 6.44)
+zoom = Vector2(4, 4)
+editor_draw_limits = true
+editor_draw_drag_margin = true
