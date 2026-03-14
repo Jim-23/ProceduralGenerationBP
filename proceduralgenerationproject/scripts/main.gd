@@ -140,7 +140,19 @@ func _on_generate_button_pressed() -> void:
 
 	
 
-	status_label.text        = "Done"
+	var algorithm_name := dungeon_type_option.get_item_text(dungeon_type_option.selected)
+	var run_id := Time.get_ticks_usec()
+
+	_log_results(
+		algorithm_name,
+		width,
+		height,
+		run_id,
+		gen_ms,
+		coverage_pct
+	)
+
+	status_label.text = "Done"
 	generate_button.disabled = false
 
 func _update_camera_limits(map_width: int, map_height: int) -> void:
@@ -218,39 +230,97 @@ func _place_player_on_floor(floor_tiles: Array[Vector2i]) -> void:
 		push_warning("No floor tiles to spawn the player on.")
 		return
 
-	# build a quick lookup set so we can check any tile in O(1)
 	var floor_set: Dictionary = {}
 	for tile in floor_tiles:
 		floor_set[tile] = true
 
-	# find a tile where all 9 tiles in a 3x3 area around it are floor
-	for tile in floor_tiles:
-		if _is_clear_3x3_center(tile, floor_set):
-			# subtract the collision offset so the physics body lands on the right tile
-			var world_pos: Vector2 = dungeon_layer.map_to_local(tile) - PLAYER_COLLISION_OFFSET
-			player.global_position = world_pos
+	# use only the largest connected floor region
+	var main_region: Array[Vector2i] = _get_largest_floor_region(floor_tiles, floor_set)
+	if main_region.is_empty():
+		push_warning("No connected floor region found for player spawn.")
+		return
+
+	var main_region_set: Dictionary = {}
+	for tile in main_region:
+		main_region_set[tile] = true
+
+	# prefer a tile with a full 3x3 floor neighborhood inside the main region
+	for tile in main_region:
+		if _is_clear_3x3_center(tile, main_region_set):
+			player.global_position = dungeon_layer.map_to_local(tile) - PLAYER_COLLISION_OFFSET
 			player.show()
 			print("Player spawned at tile: ", tile)
 			return
 
-	# fallback: no perfect 3x3 found, just use any floor tile
-	push_warning("No clean 3x3 floor area found, using fallback spawn.")
-	var fallback: Vector2i = floor_tiles[randi() % floor_tiles.size()]
+	# fallback: any tile from the largest connected region
+	push_warning("No clean 3x3 floor area found in main region, using fallback spawn.")
+	var fallback: Vector2i = main_region[randi() % main_region.size()]
 	player.global_position = dungeon_layer.map_to_local(fallback) - PLAYER_COLLISION_OFFSET
 	player.show()
 
 
+func _get_largest_floor_region(floor_tiles: Array[Vector2i], floor_set: Dictionary) -> Array[Vector2i]:
+	var visited: Dictionary = {}
+	var largest_region: Array[Vector2i] = []
+
+	for start_tile in floor_tiles:
+		if visited.has(start_tile):
+			continue
+
+		var region: Array[Vector2i] = []
+		var queue: Array[Vector2i] = [start_tile]
+		visited[start_tile] = true
+
+		while not queue.is_empty():
+			var current: Vector2i = queue.pop_front()
+			region.append(current)
+
+			for neighbor in _get_floor_neighbors_4(current):
+				if floor_set.has(neighbor) and not visited.has(neighbor):
+					visited[neighbor] = true
+					queue.append(neighbor)
+
+		if region.size() > largest_region.size():
+			largest_region = region
+
+	return largest_region
+
+
+func _get_floor_neighbors_4(tile: Vector2i) -> Array[Vector2i]:
+	return [
+		tile + Vector2i(1, 0),
+		tile + Vector2i(-1, 0),
+		tile + Vector2i(0, 1),
+		tile + Vector2i(0, -1)
+	]
+
+# returns true if all 9 tiles in a 3x3 area centered on 'center' are floor
+func _is_clear_3x3_center(center: Vector2i, floor_set: Dictionary) -> bool:
+	for dy: int in range(-1, 2):
+		for dx: int in range(-1, 2):
+			if not floor_set.has(center + Vector2i(dx, dy)):
+				return false
+	return true
+
 func _place_coins_on_floor(floor_tiles: Array[Vector2i]) -> void:
-	# clear coins from the previous generation
 	if floor_tiles.is_empty():
 		push_warning("No floor tiles to spawn coins on.")
 		return
 
+	var floor_set: Dictionary = {}
+	for tile in floor_tiles:
+		floor_set[tile] = true
+
+	# use only the largest connected floor region
+	var main_region: Array[Vector2i] = _get_largest_floor_region(floor_tiles, floor_set)
+	if main_region.is_empty():
+		push_warning("No connected floor region found for coin spawn.")
+		return
+
 	# pick a random coin_count between MIN and MAX, capped by available floor tiles
 	var coin_count: int = randi_range(MIN_COINS, MAX_COINS)
-	var shuffled: Array[Vector2i] = floor_tiles.duplicate()
+	var shuffled: Array[Vector2i] = main_region.duplicate()
 	shuffled.shuffle()
-	# returns minimum of two int values
 	coin_count = mini(coin_count, shuffled.size())
 
 	for i in range(coin_count):
@@ -262,12 +332,27 @@ func _place_coins_on_floor(floor_tiles: Array[Vector2i]) -> void:
 		_spawned_coins.append(c)
 
 	print("Spawned %d coins" % coin_count)
-	
 
-# returns true if all 9 tiles in a 3x3 area centered on 'center' are floor
-func _is_clear_3x3_center(center: Vector2i, floor_set: Dictionary) -> bool:
-	for dy: int in range(-1, 2):
-		for dx: int in range(-1, 2):
-			if not floor_set.has(center + Vector2i(dx, dy)):
-				return false
-	return true
+	
+func _log_results(algorithm:String, width:int, height:int, run:int, gen_time:float, coverage:float):
+
+	var path := "results.csv"
+	var file: FileAccess
+
+	if FileAccess.file_exists(path):
+		file = FileAccess.open(path, FileAccess.READ_WRITE)
+		file.seek_end()
+	else:
+		file = FileAccess.open(path, FileAccess.WRITE_READ)
+		file.store_line("algorithm,width,height,run,gen_time_ms,coverage")
+
+	file.store_line("%s,%d,%d,%d,%.3f,%.2f" % [
+		algorithm,
+		width,
+		height,
+		run,
+		gen_time,
+		coverage
+	])
+
+	file.close()
