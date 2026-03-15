@@ -2,21 +2,10 @@ extends CharacterBody2D
 
 
 const SPEED = 200
-#const JUMP_VELOCITY = -300.0
 
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 
 func _physics_process(delta: float) -> void:
-	# Add the gravity.
-
-	#if not is_on_floor():
-	#	velocity += get_gravity() * delta
-
-	# Handle jump.
-	#if Input.is_action_just_pressed("jump") and is_on_floor():
-	#	velocity.y = JUMP_VELOCITY
-
-	# get input dir: (0.0, 0.0), (0.0, 1.0), (1.0, 0.0), (-1.0, 0.0)
 	var direction = Input.get_vector("go_left", "go_right", "go_up", "go_down")
 	velocity = direction * SPEED
 	
@@ -41,7 +30,7 @@ func _physics_process(delta: float) -> void:
 	#else:
 		#velocity.x = move_toward(velocity.x, 0, SPEED)
 
-	move_and_slide()
+	move_and_slide() # moves the body based on velocity
 
 # setter variable for zooming in and out
 var zoom : bool = true:

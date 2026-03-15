@@ -45,20 +45,33 @@ const PLAYER_COLLISION_OFFSET: Vector2 = Vector2(49.0, 6.0)
 const MIN_COINS: int = 5
 const MAX_COINS: int = 50
 
+const BENCHMARK_SIZES = [
+	Vector2i(60, 60),
+	Vector2i(100, 100),
+	Vector2i(150, 150),
+	Vector2i(20, 50),
+	Vector2i(70, 30)
+]
+
+const BENCHMARK_RUNS = 10
+
+var _coins_collected: int = 0
+var _coins_total: int = 0
 var _spawned_coins: Array[Node] = []
 
 # ui references
 @onready var dungeon_type_option: OptionButton = $UI/Panel/VBoxContainer/Buttons/DungeonType
-@onready var width_input: SpinBox              = $UI/Panel/VBoxContainer/Buttons/Width
-@onready var height_input: SpinBox             = $UI/Panel/VBoxContainer/Buttons/Height
-@onready var generate_button: Button           = $UI/Panel/VBoxContainer/Buttons/GenerateButton
+@onready var width_input: SpinBox = $UI/Panel/VBoxContainer/Buttons/Width
+@onready var height_input: SpinBox = $UI/Panel/VBoxContainer/Buttons/Height
+@onready var generate_button: Button = $UI/Panel/VBoxContainer/Buttons/GenerateButton
+@onready var benchmark_button: Button = $UI/Panel/VBoxContainer/Buttons/BenchmarkButton
 
 @onready var gen_time_label:  Label = $UI/Panel/VBoxContainer/Stats/GenTimeLabel
 @onready var floor_label:     Label = $UI/Panel/VBoxContainer/Stats/FloorLabel
 @onready var coverage_label:  Label = $UI/Panel/VBoxContainer/Stats/CoverageLabel
 @onready var size_label:      Label = $UI/Panel/VBoxContainer/Stats/SizeLabel
 @onready var status_label:    Label = $UI/Panel/VBoxContainer/Stats/StatusLabel
-
+@onready var coins_label: Label = $UI/CoinsLabel
 
 func _ready() -> void:
 	# hide the player at startup - it will appear after the first generation
@@ -88,6 +101,10 @@ func _on_generate_button_pressed() -> void:
 		if is_instance_valid(coin):
 			coin.queue_free()
 	_spawned_coins.clear()
+	
+	_coins_collected = 0
+	_coins_total = 0
+	coins_label.text = "Coins: 0/0"
 
 
 	var width:  int = int(width_input.value)
@@ -117,11 +134,11 @@ func _on_generate_button_pressed() -> void:
 	var floor_count: int = _count_floor_tiles(map)
 	var coverage_pct: float = (float(floor_count) / float(total_tiles)) * 100.0
 
-	gen_time_label.text  = "Gen time: %.2f ms" % gen_ms
-	floor_label.text     = "Floor tiles: %d" % floor_count
-	coverage_label.text  = "Coverage: %.1f%%" % coverage_pct
-	size_label.text      = "Size: %dx%d" % [width, height]
-	status_label.text    = "Rendering..."
+	gen_time_label.text = "Gen time: %.2f ms" % gen_ms
+	floor_label.text = "Floor tiles: %d" % floor_count
+	coverage_label.text = "Coverage: %.1f%%" % coverage_pct
+	size_label.text = "Size: %dx%d" % [width, height]
+	status_label.text = "Rendering..."
 
 	# lock the button so the user can't press generate again while rendering
 	generate_button.disabled = true
@@ -139,7 +156,7 @@ func _on_generate_button_pressed() -> void:
 	_place_player_on_floor(floor_tiles)
 
 	
-
+	"""
 	var algorithm_name := dungeon_type_option.get_item_text(dungeon_type_option.selected)
 	var run_id := Time.get_ticks_usec()
 
@@ -149,11 +166,53 @@ func _on_generate_button_pressed() -> void:
 		height,
 		run_id,
 		gen_ms,
-		coverage_pct
+		coverage_pct,
+		floor_count
 	)
-
+	"""
 	status_label.text = "Done"
 	generate_button.disabled = false
+
+func run_benchmark() -> void:
+
+	var algorithms = [
+		{"name":"Rooms", "func": RoomsGenerator.generate},
+		{"name":"Maze", "func": MazeGenerator.generate},
+		{"name":"BSP", "func": BSPGenerator.generate},
+		{"name":"Drunken", "func": DrunkenGenerator.generate},
+		{"name":"Cellular", "func": CellularGenerator.generate}
+	]
+
+	for algo in algorithms:
+
+		for size in BENCHMARK_SIZES:
+
+			for run in range(BENCHMARK_RUNS):
+
+				var width = size.x
+				var height = size.y
+
+				var t_start = Time.get_ticks_usec()
+				var map = algo.func.call(width, height)
+				var t_end = Time.get_ticks_usec()
+
+				var gen_ms = (t_end - t_start) / 1000.0
+
+				var total_tiles = width * height
+				var floor_count = _count_floor_tiles(map)
+				var coverage_pct = float(floor_count) / float(total_tiles) * 100.0
+
+				_log_results(
+					algo.name,
+					width,
+					height,
+					run,
+					gen_ms,
+					coverage_pct,
+					floor_count
+				)
+
+				print(algo.name, " ", width, "x", height, " run ", run, " done")
 
 func _update_camera_limits(map_width: int, map_height: int) -> void:
 	if player == null:
@@ -202,7 +261,7 @@ func _draw_map_animated(map: Array) -> Array[Vector2i]:
 					dungeon_layer.erase_cell(pos)
 
 		# short pause between rows so the reveal effect is visible
-		await get_tree().create_timer(0.015).timeout
+		await get_tree().create_timer(0.005).timeout
 
 		var elapsed: float = (Time.get_ticks_usec() - render_start) / 1_000_000.0
 		status_label.text = "Rendering: %.2f s" % elapsed
@@ -321,20 +380,32 @@ func _place_coins_on_floor(floor_tiles: Array[Vector2i]) -> void:
 	var coin_count: int = randi_range(MIN_COINS, MAX_COINS)
 	var shuffled: Array[Vector2i] = main_region.duplicate()
 	shuffled.shuffle()
+
 	coin_count = mini(coin_count, shuffled.size())
+
+	_coins_collected = 0
+	_coins_total = coin_count
+	coins_label.text = "Coins: %d/%d" % [_coins_collected, _coins_total]
+
 
 	for i in range(coin_count):
 		var tile: Vector2i = shuffled[i]
 		var world_pos: Vector2 = dungeon_layer.map_to_local(tile)
 		var c: Area2D = CoinScene.instantiate()
 		c.global_position = world_pos
+		
+		c.collected.connect(_on_coin_collected)
+		
 		add_child(c)
 		_spawned_coins.append(c)
 
 	print("Spawned %d coins" % coin_count)
 
-	
-func _log_results(algorithm:String, width:int, height:int, run:int, gen_time:float, coverage:float):
+func _on_coin_collected() -> void:
+	_coins_collected += 1
+	coins_label.text = "Coins: %d/%d" % [_coins_collected, _coins_total]
+
+func _log_results(algorithm:String, width:int, height:int, run:int, gen_time:float, coverage:float, floor_tiles:int):
 
 	var path := "results.csv"
 	var file: FileAccess
@@ -352,7 +423,14 @@ func _log_results(algorithm:String, width:int, height:int, run:int, gen_time:flo
 		height,
 		run,
 		gen_time,
-		coverage
+		coverage,
+		floor_tiles
 	])
 
 	file.close()
+
+
+func _on_benchmark_button_pressed() -> void:
+	generate_button.disabled = true
+	run_benchmark()
+	generate_button.disabled = false

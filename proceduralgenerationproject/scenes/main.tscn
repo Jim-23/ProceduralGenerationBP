@@ -35,6 +35,7 @@ script = SubResource("GDScript_sugp2")
 custom_minimum_size = Vector2(0, 90)
 anchors_preset = 10
 anchor_right = 1.0
+offset_right = 257.0
 offset_bottom = 150.0
 grow_horizontal = 2
 theme = SubResource("Theme_sugp2")
@@ -95,10 +96,16 @@ value = 80.0
 alignment = 1
 
 [node name="GenerateButton" type="Button" parent="UI/Panel/VBoxContainer/Buttons"]
+custom_minimum_size = Vector2(400, 0)
 layout_mode = 2
-size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 40
 text = "Generate"
+
+[node name="BenchmarkButton" type="Button" parent="UI/Panel/VBoxContainer/Buttons"]
+custom_minimum_size = Vector2(400, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "Benchmark"
 
 [node name="Stats" type="HBoxContainer" parent="UI/Panel/VBoxContainer"]
 layout_mode = 2
@@ -134,4 +141,13 @@ size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 30
 text = "Ready"
 
+[node name="CoinsLabel" type="Label" parent="UI"]
+offset_left = 4.0
+offset_top = 150.0
+offset_right = 357.0
+offset_bottom = 317.0
+theme_override_font_sizes/font_size = 40
+text = "Coins: --/--"
+
 [connection signal="pressed" from="UI/Panel/VBoxContainer/Buttons/GenerateButton" to="." method="_on_generate_button_pressed"]
+[connection signal="pressed" from="UI/Panel/VBoxContainer/Buttons/BenchmarkButton" to="." method="_on_benchmark_button_pressed"]
