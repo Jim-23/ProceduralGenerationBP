@@ -15,12 +15,13 @@ extends Node2D
 @onready var player: CharacterBody2D = $Player
 
 # generator scripts inpoerwd
-const RoomsGenerator    = preload("res://dungeons/algorithms/rooms_generator.gd")
+
 const CoinScene         = preload("res://scenes/coin.tscn")
+const RoomsGenerator    = preload("res://dungeons/algorithms/rooms_generator.gd")
 const BSPGenerator      = preload("res://dungeons/algorithms/bsp_generator.gd")
-const MazeGenerator     = preload("res://dungeons/algorithms/maze_generator.gd")
-const DrunkenGenerator  = preload("res://dungeons/algorithms/drunken_generator.gd")
 const CellularGenerator = preload("res://dungeons/algorithms/cellular_generator.gd")
+const DrunkenGenerator  = preload("res://dungeons/algorithms/drunken_generator.gd")
+const MazeGenerator     = preload("res://dungeons/algorithms/maze_generator.gd")
 
 # tile types - must match the constants in each generator
 enum TileType { EMPTY = 0, 
@@ -82,10 +83,10 @@ func _ready() -> void:
 	# fill the dropdown (the index here must match the match statement below)
 	dungeon_type_option.clear()
 	dungeon_type_option.add_item("Rooms")     # 0
-	dungeon_type_option.add_item("Maze")      # 1
-	dungeon_type_option.add_item("BSP")       # 2
-	dungeon_type_option.add_item("Drunken")   # 3
-	dungeon_type_option.add_item("Cellular")  # 4
+	dungeon_type_option.add_item("BSP")       # 1
+	dungeon_type_option.add_item("Drunken")   # 2
+	dungeon_type_option.add_item("Cellular")  # 3
+	dungeon_type_option.add_item("Maze")      # 4
 
 	width_input.value  = DUNGEON_WIDTH
 	height_input.value = DUNGEON_HEIGHT
@@ -117,10 +118,10 @@ func _on_generate_button_pressed() -> void:
 	var map: Array = []
 	match dungeon_type_option.selected:
 		0: map = RoomsGenerator.generate(width, height)
-		1: map = MazeGenerator.generate(width, height)
-		2: map = BSPGenerator.generate(width, height)
-		3: map = DrunkenGenerator.generate(width, height)
-		4: map = CellularGenerator.generate(width, height)
+		1: map = BSPGenerator.generate(width, height)
+		2: map = DrunkenGenerator.generate(width, height)
+		3: map = CellularGenerator.generate(width, height)
+		4: map = MazeGenerator.generate(width, height)
 		_:
 			push_warning("Unknown dungeon type selected.")
 			return
@@ -177,10 +178,10 @@ func run_benchmark() -> void:
 
 	var algorithms = [
 		{"name":"Rooms", "func": RoomsGenerator.generate},
-		{"name":"Maze", "func": MazeGenerator.generate},
 		{"name":"BSP", "func": BSPGenerator.generate},
 		{"name":"Drunken", "func": DrunkenGenerator.generate},
-		{"name":"Cellular", "func": CellularGenerator.generate}
+		{"name":"Cellular", "func": CellularGenerator.generate},
+		{"name":"Maze", "func": MazeGenerator.generate}
 	]
 
 	for algo in algorithms:
@@ -215,13 +216,18 @@ func run_benchmark() -> void:
 				print(algo.name, " ", width, "x", height, " run ", run, " done")
 
 func _update_camera_limits(map_width: int, map_height: int) -> void:
-	if player == null:
-		return
-
-	var camera: Camera2D = player.get_node_or_null("Camera2D")
-
+	# Try to find camera as child of player (old structure) or as sibling (new structure)
+	var camera: Camera2D = null
+	
+	if player != null:
+		camera = player.get_node_or_null("Camera2D")
+	
 	if camera == null:
-		push_warning("No Camera2D found on player!")
+		# Try to find camera as sibling in main scene
+		camera = get_node_or_null("Camera2D")
+	
+	if camera == null:
+		push_warning("No Camera2D found!")
 		return
 
 	var tile_size: Vector2i = dungeon_layer.tile_set.tile_size
@@ -261,7 +267,7 @@ func _draw_map_animated(map: Array) -> Array[Vector2i]:
 					dungeon_layer.erase_cell(pos)
 
 		# short pause between rows so the reveal effect is visible
-		await get_tree().create_timer(0.005).timeout
+		await get_tree().create_timer(0.01).timeout
 
 		var elapsed: float = (Time.get_ticks_usec() - render_start) / 1_000_000.0
 		status_label.text = "Rendering: %.2f s" % elapsed
@@ -404,7 +410,10 @@ func _place_coins_on_floor(floor_tiles: Array[Vector2i]) -> void:
 func _on_coin_collected() -> void:
 	_coins_collected += 1
 	coins_label.text = "Coins: %d/%d" % [_coins_collected, _coins_total]
-
+	if _coins_collected == _coins_total:
+		coins_label.text = "ALL COINS COLLECTED! NEW DUNGEON IS BEING GENERATED"
+		_on_generate_button_pressed()
+		
 func _log_results(algorithm:String, width:int, height:int, run:int, gen_time:float, coverage:float, floor_tiles:int):
 
 	var path := "results.csv"
