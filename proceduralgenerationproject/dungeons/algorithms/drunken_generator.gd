@@ -32,13 +32,16 @@ static func generate(width: int, height: int) -> Array:
 	rng.randomize()
 
 	# start the walk at the center
-	var x: int = int(width * 0.5)
-	var y: int = int(height * 0.5)
+	@warning_ignore("integer_division")
+	var x: int = width / 2
+	@warning_ignore("integer_division")
+	var y: int = height / 2
 
 	(map[y] as Array)[x] = TILE_FLOOR
 
 	# keep going until 35% of tiles are floor
-	var target_floor_count: int = int(width * height * 0.35)
+	@warning_ignore("integer_division")
+	var target_floor_count: int = (width * height * 35) / 100
 	var current_floor_count: int = 1
 
 	# carve the guaranteed 3x3 spawn area
@@ -79,6 +82,7 @@ static func _carve_3x3(map: Array, x: int, y: int, width: int, height: int) -> i
 		for dx in range(3):
 			var nx: int = x + dx
 			var ny: int = y + dy
+			# only carve inside the map border and if not already floor
 			if nx > 0 and nx < width - 1 and ny > 0 and ny < height - 1:
 				if (map[ny] as Array)[nx] != TILE_FLOOR:
 					(map[ny] as Array)[nx] = TILE_FLOOR
@@ -100,6 +104,7 @@ static func _carve_2x2(map: Array, x: int, y: int, width: int, height: int) -> i
 	return carved_count
 
 
+# surrounds all floor tiles with walls where there is empty space
 static func _add_walls(map: Array, width: int, height: int) -> void:
 	for y: int in range(height):
 		for x: int in range(width):

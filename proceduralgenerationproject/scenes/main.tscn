@@ -91,7 +91,7 @@ text = "Height:"
 [node name="Height" type="SpinBox" parent="UI/Panel/VBoxContainer/Buttons"]
 layout_mode = 2
 theme = SubResource("Theme_tefeu")
-min_value = 10.0
+min_value = 20.0
 max_value = 200.0
 value = 80.0
 alignment = 1

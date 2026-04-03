@@ -43,6 +43,7 @@ class Branch:
 
 	# returns the center tile of this branch area
 	func get_center() -> Vector2i:
+		@warning_ignore("integer_division")
 		return Vector2i(position.x + size.x / 2, position.y + size.y / 2)
 
 	# splits this branch in two and records the connection for corridor drawing
@@ -120,7 +121,7 @@ static func generate(width: int, height: int) -> Array:
 	return map
 
 
-# returns true if tile (x, y) is inside the padding border of a leaf
+# checks if a tile falls within the padding border (not actual room space)
 static func _is_inside_padding(x: int, y: int, leaf: Branch, pad: Vector4i) -> bool:
 	return x < pad.x or y < pad.y or x >= leaf.size.x - pad.z or y >= leaf.size.y - pad.w
 
@@ -143,6 +144,7 @@ static func _carve_l_corridor(map: Array, a: Vector2i, b: Vector2i, width: int, 
 				(map[cy] as Array)[tx] = TILE_FLOOR
 
 
+# surrounds all floor tiles with walls where there is empty space
 static func _add_walls(map: Array, width: int, height: int) -> void:
 	for y: int in range(height):
 		for x: int in range(width):

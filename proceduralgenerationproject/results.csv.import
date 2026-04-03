@@ -2,14 +2,14 @@
 
 importer="csv_translation"
 type="Translation"
-uid="uid://dkbyysrfx2cy1"
+uid="uid://crhn0lq5dwgs1"
 
 [deps]
 
-files=["res://results.width.translation", "res://results.height.translation", "res://results.run.translation", "res://results.gen.translation", "res://results.coverage.translation"]
+files=["res://results.width.translation", "res://results.height.translation", "res://results.run.translation", "res://results.gen.translation", "res://results.coverage.translation", "res://results.floor.translation"]
 
 source_file="res://results.csv"
-dest_files=["res://results.width.translation", "res://results.height.translation", "res://results.run.translation", "res://results.gen.translation", "res://results.coverage.translation"]
+dest_files=["res://results.width.translation", "res://results.height.translation", "res://results.run.translation", "res://results.gen.translation", "res://results.coverage.translation", "res://results.floor.translation"]
 
 [params]
 

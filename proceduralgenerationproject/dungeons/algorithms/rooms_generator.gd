@@ -27,13 +27,21 @@ static func generate(width: int, height: int) -> Array:
 		map.append(row)
 
 	var rooms: Array[Rect2] = []
-	var max_attempts: int = 100
+	@warning_ignore("integer_division")
+	var room_count: int = maxi(5, (width * height) / 360)
+	var max_attempts: int = room_count * 10
 	var tries: int = 0
 
-	# keep trying to place rooms until we have 10 or run out of attempts
-	while rooms.size() < 10 and tries < max_attempts:
-		var w: int = rng.randi_range(8, 16)
-		var h: int = rng.randi_range(8, 16)
+	# keep trying to place rooms until we reach the target or run out of attempts
+	while rooms.size() < room_count and tries < max_attempts:
+		var w: int = rng.randi_range(6, 16)
+		var h: int = rng.randi_range(6, 16)
+
+		# skip if the room won't fit on the map
+		if width < w + 2 or height < h + 2:
+			tries += 1
+			continue
+
 		var x: int = rng.randi_range(1, width  - w - 1)
 		var y: int = rng.randi_range(1, height - h - 1)
 
@@ -105,10 +113,12 @@ static func _carve_corridor(map: Array, from: Vector2, to: Vector2,
 					(map[cy] as Array)[cx] = TILE_FLOOR
 
 
+# checks if tile is inside the map boundaries
 static func _in_bounds(x: int, y: int, width: int, height: int) -> bool:
 	return x >= 0 and y >= 0 and x < width and y < height
 
 
+# surrounds all floor tiles with walls where there is empty space
 static func _add_walls(map: Array, width: int, height: int) -> void:
 	for y: int in range(height):
 		for x: int in range(width):

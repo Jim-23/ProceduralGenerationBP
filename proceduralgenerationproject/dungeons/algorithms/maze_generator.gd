@@ -53,7 +53,9 @@ static func generate(width: int, height: int) -> Array:
 
 	# figure out how many cells fit inside the map
 	# layout: 1-tile border on each side, each cell takes 3 tiles (2 floor + 1 wall gap)
+	@warning_ignore("integer_division")
 	var cells_w: int = max(1, (width - 2) / 3)
+	@warning_ignore("integer_division")
 	var cells_h: int = max(1, (height - 2) / 3)
 
 	# every cell starts with all four walls present
@@ -160,12 +162,14 @@ static func _check_neighbours(cell: Vector2i, unvisited: Dictionary,
 	var list: Array[Vector2i] = []
 	for dir in cell_walls.keys():
 		var neighbour: Vector2i = cell + dir
+		# make sure the neighbour is within bounds and not yet visited
 		if neighbour.x >= 0 and neighbour.x < cells_w and neighbour.y >= 0 and neighbour.y < cells_h:
 			if unvisited.has(neighbour):
 				list.append(neighbour)
 	return list
 
 
+# surrounds all floor tiles with walls where there is empty space
 static func _add_walls(map: Array, width: int, height: int) -> void:
 	for y: int in range(height):
 		for x: int in range(width):

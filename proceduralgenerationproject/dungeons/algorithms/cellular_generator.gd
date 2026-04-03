@@ -95,6 +95,7 @@ static func _count_floor_neighbours(map: Array, x: int, y: int, width: int, heig
 	return count
 
 
+# surrounds all floor tiles with walls where there is empty space
 static func _add_walls(map: Array, width: int, height: int) -> void:
 	for y: int in range(height):
 		for x: int in range(width):

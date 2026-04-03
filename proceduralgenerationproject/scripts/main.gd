@@ -14,7 +14,7 @@ extends Node2D
 @onready var dungeon_layer: TileMapLayer = $DungeonLayer
 @onready var player: CharacterBody2D = $Player
 
-# generator scripts inpoerwd
+# generator scripts imported
 
 const CoinScene         = preload("res://scenes/coin.tscn")
 const RoomsGenerator    = preload("res://dungeons/algorithms/rooms_generator.gd")
@@ -131,6 +131,7 @@ func _on_generate_button_pressed() -> void:
 
 	# --- 2. count floor tiles and show the stats ---
 	# this happens before any drawing so the numbers are instant
+	print("Map: ", map)
 	var total_tiles: int = width * height
 	var floor_count: int = _count_floor_tiles(map)
 	var coverage_pct: float = (float(floor_count) / float(total_tiles)) * 100.0
@@ -424,16 +425,16 @@ func _log_results(algorithm:String, width:int, height:int, run:int, gen_time:flo
 		file.seek_end()
 	else:
 		file = FileAccess.open(path, FileAccess.WRITE_READ)
-		file.store_line("algorithm,width,height,run,gen_time_ms,coverage")
+		file.store_line("algorithm,width,height,run,gen_time_ms,coverage,floor_tiles")
 
-	file.store_line("%s,%d,%d,%d,%.3f,%.2f" % [
+	file.store_line("%s,%d,%d,%d,%.3f,%.2f,%d" % [
 		algorithm,
 		width,
 		height,
 		run,
 		gen_time,
 		coverage,
-		floor_tiles
+		floor_tiles,
 	])
 
 	file.close()
