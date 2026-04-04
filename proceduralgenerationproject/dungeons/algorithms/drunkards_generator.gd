@@ -1,4 +1,4 @@
-# res://dungeons/algorithms/drunken_generator.gd
+# res://dungeons/algorithms/drunkards_generator.gd
 #
 # drunkard's walk dungeon generator
 #
