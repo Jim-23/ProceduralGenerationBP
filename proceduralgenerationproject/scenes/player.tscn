@@ -1,10 +1,10 @@
 [gd_scene load_steps=8 format=3 uid="uid://ci6xv1na1j7qb"]
 
-[ext_resource type="Texture2D" uid="uid://rwpg7jbj5yxl" path="res://assets/player/skull_v2_1.png" id="1_3vyb7"]
+[ext_resource type="Texture2D" uid="uid://b41vcj6f70xl1" path="res://assets/player/skull_v2_1.png" id="1_3vyb7"]
 [ext_resource type="Script" uid="uid://dekxyt2oxya14" path="res://scripts/player.gd" id="1_g2els"]
-[ext_resource type="Texture2D" uid="uid://5uq8wor5c6ik" path="res://assets/player/skull_v2_2.png" id="3_sweqy"]
-[ext_resource type="Texture2D" uid="uid://bs1t6fnbr8yr1" path="res://assets/player/skull_v2_3.png" id="4_2hs0m"]
-[ext_resource type="Texture2D" uid="uid://c62df4eblw1aw" path="res://assets/player/skull_v2_4.png" id="5_1jxqw"]
+[ext_resource type="Texture2D" uid="uid://ckjs5n1lo5wpw" path="res://assets/player/skull_v2_2.png" id="3_sweqy"]
+[ext_resource type="Texture2D" uid="uid://drww2kskrx15j" path="res://assets/player/skull_v2_3.png" id="4_2hs0m"]
+[ext_resource type="Texture2D" uid="uid://3q0ivlnurxql" path="res://assets/player/skull_v2_4.png" id="5_1jxqw"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_g2els"]
 animations = [{

@@ -1,10 +1,10 @@
 [gd_scene load_steps=11 format=3 uid="uid://ddhg8trojxlxx"]
 
 [ext_resource type="Script" uid="uid://616xh5b4scht" path="res://scripts/coin.gd" id="1_1ikuy"]
-[ext_resource type="Texture2D" uid="uid://bjuj4h5l6qpfx" path="res://assets/coin/coin_1.png" id="2_wnlwo"]
-[ext_resource type="Texture2D" uid="uid://cbroeas6en6dj" path="res://assets/coin/coin_2.png" id="3_jig8b"]
-[ext_resource type="Texture2D" uid="uid://5ohfuy702c2o" path="res://assets/coin/coin_3.png" id="4_xmuha"]
-[ext_resource type="Texture2D" uid="uid://d3gle7t8t6s2p" path="res://assets/coin/coin_4.png" id="5_kfxoj"]
+[ext_resource type="Texture2D" uid="uid://bpgvw1pwkicqg" path="res://assets/coin/coin_1.png" id="2_wnlwo"]
+[ext_resource type="Texture2D" uid="uid://5y023qotq5b7" path="res://assets/coin/coin_2.png" id="3_jig8b"]
+[ext_resource type="Texture2D" uid="uid://b1u555moqtp5" path="res://assets/coin/coin_3.png" id="4_xmuha"]
+[ext_resource type="Texture2D" uid="uid://bxcqer8cxaiih" path="res://assets/coin/coin_4.png" id="5_kfxoj"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_jsmju"]
 animations = [{
