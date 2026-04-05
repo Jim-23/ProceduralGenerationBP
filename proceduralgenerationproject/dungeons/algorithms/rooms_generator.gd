@@ -85,8 +85,6 @@ static func generate(width: int, height: int) -> Array:
 static func _carve_corridor(map: Array, from: Vector2, to: Vector2,
 		width: int, height: int, rng: RandomNumberGenerator,
 		corridor_width: int = 2) -> void:
-	var half: int = int(corridor_width * 0.5)
-
 	var fx: int = int(from.x)
 	var fy: int = int(from.y)
 	var tx: int = int(to.x)
@@ -95,24 +93,24 @@ static func _carve_corridor(map: Array, from: Vector2, to: Vector2,
 	if rng.randf() < 0.5:
 		# horizontal first, then vertical
 		for cx: int in range(min(fx, tx), max(fx, tx) + 1):
-			for off: int in range(-half, half + 1):
+			for off: int in range(corridor_width):
 				var cy: int = fy + off
 				if _in_bounds(cx, cy, width, height):
 					(map[cy] as Array)[cx] = TILE_FLOOR
 		for cy: int in range(min(fy, ty), max(fy, ty) + 1):
-			for off: int in range(-half, half + 1):
+			for off: int in range(corridor_width):
 				var cx: int = tx + off
 				if _in_bounds(cx, cy, width, height):
 					(map[cy] as Array)[cx] = TILE_FLOOR
 	else:
 		# vertical first, then horizontal
 		for cy: int in range(min(fy, ty), max(fy, ty) + 1):
-			for off: int in range(-half, half + 1):
+			for off: int in range(corridor_width):
 				var cx: int = fx + off
 				if _in_bounds(cx, cy, width, height):
 					(map[cy] as Array)[cx] = TILE_FLOOR
 		for cx: int in range(min(fx, tx), max(fx, tx) + 1):
-			for off: int in range(-half, half + 1):
+			for off: int in range(corridor_width):
 				var cy: int = ty + off
 				if _in_bounds(cx, cy, width, height):
 					(map[cy] as Array)[cx] = TILE_FLOOR

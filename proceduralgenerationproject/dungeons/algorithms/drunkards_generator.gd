@@ -7,7 +7,7 @@
 #   2. carve a 3x3 area at the start so the player always has a safe spawn
 #   3. move one step in a random direction (up/down/left/right)
 #   4. every 15-25 steps carve a small 3x3 room, otherwise carve a 2x2 corridor
-#   5. stop when 35% of the map is floor
+#   5. stop when 50% of the map is floor
 #   6. add walls around all floor tiles
 #
 # produces organic winding dungeons - everything is naturally connected
@@ -18,6 +18,8 @@ extends RefCounted
 const TILE_EMPTY: int = 0
 const TILE_FLOOR: int = 1
 const TILE_WALL: int = 2
+
+const TARGET_COVERAGE: int = 50
 
 static func generate(width: int, height: int) -> Array:
 	# start with an empty map
@@ -39,9 +41,9 @@ static func generate(width: int, height: int) -> Array:
 
 	(map[y] as Array)[x] = TILE_FLOOR
 
-	# keep going until 35% of tiles are floor
+	# keep going until  TARGET_COVERAGE  tiles are floor
 	@warning_ignore("integer_division")
-	var target_floor_count: int = (width * height * 35) / 100
+	var target_floor_count: int = (width * height * TARGET_COVERAGE) / 100
 	var current_floor_count: int = 1
 
 	# carve the guaranteed 3x3 spawn area

@@ -4,7 +4,7 @@
 #
 # how it works:
 #   1. the whole map is one big rectangle (the root branch)
-#   2. we recursively split it into two smaller pieces, building a binary tree
+#   2. we recursively split it into two smaller pieces until each is below a minimum size
 #   3. the leaves of the tree (smallest unsplit pieces) each get one room
 #   4. every pair of sibling branches is connected with an l-shaped corridor
 #   5. walls are added around all floor tiles
@@ -14,6 +14,8 @@ extends RefCounted
 const TILE_EMPTY: int = 0
 const TILE_FLOOR: int = 1
 const TILE_WALL: int = 2
+
+const MIN_SIZE: int = 13
 
 
 class Branch:
@@ -47,9 +49,15 @@ class Branch:
 		return Vector2i(position.x + size.x / 2, position.y + size.y / 2)
 
 	# splits this branch in two and records the connection for corridor drawing
-	func split(remaining: int, paths: Array, rng: RandomNumberGenerator) -> void:
-		# split horizontally if taller than wide, otherwise vertically
+	# stops when the branch is too small to split further
+	func split(min_size: int, paths: Array, rng: RandomNumberGenerator) -> void:
+		# stop if splitting would create branches smaller than the minimum
 		var split_horizontal: bool = size.y >= size.x
+		if split_horizontal and size.y < min_size * 2:
+			return
+		if not split_horizontal and size.x < min_size * 2:
+			return
+
 		var split_percent: float = rng.randf_range(0.35, 0.65)
 
 		if split_horizontal:
@@ -75,10 +83,9 @@ class Branch:
 			"right": right_child.get_center()
 		})
 
-		# keep splitting if we have budget left
-		if remaining > 0:
-			left_child.split(remaining - 1, paths, rng)
-			right_child.split(remaining - 1, paths, rng)
+		# keep splitting children if they are large enough
+		left_child.split(min_size, paths, rng)
+		right_child.split(min_size, paths, rng)
 
 
 static func generate(width: int, height: int) -> Array:
@@ -94,10 +101,10 @@ static func generate(width: int, height: int) -> Array:
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
 
-	# build the tree - 3 levels of splitting gives up to 8 rooms
+	# build the tree - partitions split until they are smaller than min_size
 	var paths: Array = []
 	var root_branch := Branch.new(Vector2i(1, 1), Vector2i(width - 2, height - 2), rng)
-	root_branch.split(3, paths, rng)
+	root_branch.split(MIN_SIZE, paths, rng)
 
 	# draw each leaf room inset by its padding
 	for leaf in root_branch.get_leaves():
