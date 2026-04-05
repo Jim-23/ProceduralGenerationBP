@@ -22,7 +22,7 @@ const TILE_WALL: int = 2
 const FILL_PROBABILITY: float = 0.45
 
 # more steps = smoother and rounder caves
-const SIMULATION_STEPS: int = 3
+const SIMULATION_STEPS: int = 5
 
 static func generate(width: int, height: int) -> Array:
 	var rng := RandomNumberGenerator.new()
