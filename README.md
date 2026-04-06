@@ -30,10 +30,13 @@ Bakalářská práce — implementace a srovnání pěti algoritmů proceduráln
 
 ## Ovládání
 
-- **WASD / šipky** — pohyb hráče
+- **W A S D** — pohyb hráče
 - **Kolečko myši** — přiblížení / oddálení
+- **Pravé tlačítko myši** - pohybování po mapě nezávisle na hráči
+- **R** - focus zpět na hráče
 - **Generate** — vygeneruje mapu na základě zvoleného algoritmu a rozměrů
 - **Benchmark** — spustí automatizované měření všech algoritmů na pěti velikostech map (výsledky se uloží do `results.csv`)
+
 
 ## Analýza výsledků
 
@@ -53,6 +56,8 @@ dungeons/algorithms/   — generovací algoritmy (GDScript)
 scripts/               — herní logika (main, player, coin)
 scenes/                — Godot scény
 assets/                — grafické prostředky (2D Pixel Dungeon Asset Pack)
+plots/                 - Výsledné grafy z analyzátoru
 result_analyser.py     — Python skript pro analýzu a vizualizaci dat
 results.csv            — naměřená data z benchmarku
+requirements.txt       - Požadované knihovny pro spuštění skriptu result_analyser.py
 ```
