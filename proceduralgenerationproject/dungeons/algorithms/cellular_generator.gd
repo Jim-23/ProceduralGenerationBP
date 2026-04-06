@@ -15,7 +15,7 @@ const TILE_WALL: int = 2
 # 45% probability of FLOOR TILE
 const FILL_PROBABILITY: float = 0.45
 
-# more steps = more coverage but higher time
+# more steps -> more coverage but higher time
 const SIMULATION_STEPS: int = 5
 
 static func generate(width: int, height: int) -> Array:

@@ -72,7 +72,7 @@ static func generate(width: int, height: int) -> Array:
 	_add_walls(map, width, height)
 	return map
 
-# carves a 2x2 or 3x3  area, returns how many new floor tiles were created
+# carves a 2x2 or 3x3  area, return how many new floor tiles were created
 static func _carve_area(map: Array, x: int, y: int, width: int, height: int, area_size: int) -> int:
 	var carved_count: int = 0
 	for dy in range(area_size):

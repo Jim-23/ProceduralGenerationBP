@@ -422,6 +422,7 @@ func _place_coins_on_floor(floor_tiles: Array[Vector2i]) -> void:
 	print("Spawned %d coins" % coin_count)
 
 func _on_coin_collected() -> void:
+	# if you collect all coins, new dungeon will be generated
 	_coins_collected += 1
 	coins_label.text = "Coins: %d/%d" % [_coins_collected, _coins_total]
 	if _coins_collected == _coins_total:
@@ -429,7 +430,7 @@ func _on_coin_collected() -> void:
 		_on_generate_button_pressed()
 		
 func _log_results(algorithm:String, width:int, height:int, run:int, gen_time:float, coverage:float, floor_tiles:int):
-
+	# function for logging benchmark results
 	var path := "results.csv"
 	var file: FileAccess
 

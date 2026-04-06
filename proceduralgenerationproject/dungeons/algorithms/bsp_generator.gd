@@ -14,6 +14,7 @@ const TILE_EMPTY: int = 0
 const TILE_FLOOR: int = 1
 const TILE_WALL: int = 2
 
+# min size of the final leaf (tried 10 and 15) - 15 -- rooms too big, 10 - rooms too small
 const MIN_SIZE: int = 13
 
 
