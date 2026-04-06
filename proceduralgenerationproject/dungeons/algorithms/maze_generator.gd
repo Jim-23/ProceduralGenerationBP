@@ -1,17 +1,12 @@
 # res://dungeons/algorithms/maze_generator.gd
-#
-# recursive backtracker maze generator (depth-first search)
-#
-# how it works:
-#   1. split the map into a grid of abstract cells
-#      (each cell is 2x2 floor tiles with a 1-tile gap between cells)
-#   2. start dfs from cell (0,0) and randomly carve through walls to unvisited neighbours
-#   3. backtrack when no unvisited neighbours are left
-#   4. translate the cell grid into actual floor tiles on the map
-#   5. add walls around all floor tiles
-#
-# this always produces a perfect maze - every cell is reachable and
-# there is exactly one path between any two points
+
+# maze generator
+
+# 1. split the map into a grid of cells (each cell is 2x2 floor tiles with a 1-tile gap between cells)
+# 2. start dfs from cell (0,0) and randomly carve walls to unvisited neighbours
+# 3. backtrack when no unvisited neighbours are left
+# 4. translate the cell grid into actual floor tiles on the map
+# 5. add walls around all floor tiles
 
 extends RefCounted
 
@@ -19,26 +14,18 @@ const TILE_EMPTY: int = 0
 const TILE_FLOOR: int = 1
 const TILE_WALL: int = 2
 
-# bit flags for the four walls of a cell
+# bit flags for the four walls of a cell (North, East, South, West)
 const N: int = 1
 const E: int = 2
 const S: int = 4
 const W: int = 8
 
-# maps a direction vector to the corresponding wall bit
+# direction vector to the corresponding wall bit
 static var cell_walls := {
 	Vector2i(0, -1): N,
 	Vector2i(1, 0): E,
 	Vector2i(0, 1): S,
 	Vector2i(-1, 0): W
-}
-
-# the opposite wall for each direction (used when removing walls between cells)
-static var opposite_walls := {
-	N: S,
-	S: N,
-	E: W,
-	W: E
 }
 
 
@@ -52,9 +39,10 @@ static func generate(width: int, height: int) -> Array:
 		map.append(row)
 
 	# figure out how many cells fit inside the map
-	# layout: 1-tile border on each side, each cell takes 3 tiles (2 floor + 1 wall gap)
+	# 1 tile border on each side, each cell takes 3 tiles (2 floor + 1 wall gap)
 	@warning_ignore("integer_division")
 	var cells_w: int = max(1, (width - 2) / 3)
+
 	@warning_ignore("integer_division")
 	var cells_h: int = max(1, (height - 2) / 3)
 
@@ -64,11 +52,11 @@ static func generate(width: int, height: int) -> Array:
 		for cx in range(cells_w):
 			grid[Vector2i(cx, cy)] = N | E | S | W
 
-	# --- depth-first search ---
+	# depth-first search
 	var stack: Array[Vector2i] = []
 	var current_cell := Vector2i(0, 0)
 
-	# unvisited holds all cells we haven't reached yet
+	# unvisited holds all cells we haven't visited yet
 	var unvisited: Dictionary = grid.duplicate()
 	unvisited.erase(current_cell)  # starting cell is visited immediately
 
@@ -100,15 +88,15 @@ static func generate(width: int, height: int) -> Array:
 				current_cell = unvisited.keys()[0]
 				unvisited.erase(current_cell)
 
-	# --- translate cells to tiles ---
-	# each cell's floor area starts at tile (1 + cell_x*3, 1 + cell_y*3)
-	# corridors fill the 1-tile gap between adjacent cells
+	# translate cells to tiles
+	# each floor area starts at tile (1 + cell_x*3, 1 + cell_y*3)
+	# corridors fill the 1-tile gap between cells
 	for cell_pos in grid.keys():
 		var cell_x: int = cell_pos.x
 		var cell_y: int = cell_pos.y
 		var walls: int  = grid[cell_pos]
 
-		# top-left tile of this cell's 2x2 floor area
+		# top-left tile of this cell is 2x2 floor area
 		var tile_x: int = 1 + cell_x * 3
 		var tile_y: int = 1 + cell_y * 3
 
@@ -159,6 +147,7 @@ static func generate(width: int, height: int) -> Array:
 # returns all unvisited neighbours of a cell that are inside the grid
 static func _check_neighbours(cell: Vector2i, unvisited: Dictionary,
 		cells_w: int, cells_h: int) -> Array[Vector2i]:
+
 	var list: Array[Vector2i] = []
 	for dir in cell_walls.keys():
 		var neighbour: Vector2i = cell + dir

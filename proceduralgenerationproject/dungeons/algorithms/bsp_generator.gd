@@ -1,13 +1,12 @@
 # res://dungeons/algorithms/bsp_generator.gd
-#
-# binary space partitioning (bsp) dungeon generator
-#
-# how it works:
-#   1. the whole map is one big rectangle (the root branch)
-#   2. we recursively split it into two smaller pieces until each is below a minimum size
-#   3. the leaves of the tree (smallest unsplit pieces) each get one room
-#   4. every pair of sibling branches is connected with an l-shaped corridor
-#   5. walls are added around all floor tiles
+
+# bsp generator
+
+# 1. the whole map is one big rectangle - root
+# 2. we recursively split it into two smaller pieces until each is around a minimum size
+# 3. the leaves (smallest pieces) get one room
+# 4. every pair of sibling branches is connected with an l-shaped corridor
+# 5. walls are added around all floor tiles
 
 extends RefCounted
 
@@ -58,6 +57,7 @@ class Branch:
 		if not split_horizontal and size.x < min_size * 2:
 			return
 
+		# randomly set where to split the area
 		var split_percent: float = rng.randf_range(0.35, 0.65)
 
 		if split_horizontal:
@@ -106,13 +106,15 @@ static func generate(width: int, height: int) -> Array:
 	var root_branch := Branch.new(Vector2i(1, 1), Vector2i(width - 2, height - 2), rng)
 	root_branch.split(MIN_SIZE, paths, rng)
 
-	# draw each leaf room inset by its padding
-	for leaf in root_branch.get_leaves():
-		var pad: Vector4i = leaf.padding
+	# draw each leaf room
+	for leaf in root_branch.get_leaves(): # collect leaf branches - each will be one room
+		var pad: Vector4i = leaf.padding # gets random 2.3 tile  padding so the room is a bit smaller than the whole leaf area and rooms are not right next to each other
+		# iterate over every tile in the leaf and if it is not in the padding, create a floor
 		for lx in range(leaf.size.x):
 			for ly in range(leaf.size.y):
 				if _is_inside_padding(lx, ly, leaf, pad):
 					continue
+
 				var mx: int = lx + leaf.position.x
 				var my: int = ly + leaf.position.y
 				if mx > 0 and mx < width - 1 and my > 0 and my < height - 1:
@@ -128,7 +130,7 @@ static func generate(width: int, height: int) -> Array:
 	return map
 
 
-# checks if a tile falls within the padding border (not actual room space)
+# checks if a tile falls within the padding border
 static func _is_inside_padding(x: int, y: int, leaf: Branch, pad: Vector4i) -> bool:
 	return x < pad.x or y < pad.y or x >= leaf.size.x - pad.z or y >= leaf.size.y - pad.w
 
@@ -151,7 +153,7 @@ static func _carve_l_corridor(map: Array, a: Vector2i, b: Vector2i, width: int, 
 				(map[cy] as Array)[tx] = TILE_FLOOR
 
 
-# surrounds all floor tiles with walls where there is empty space
+# surrounds all floor tiles with walls where there is empty space - same in every generator
 static func _add_walls(map: Array, width: int, height: int) -> void:
 	for y: int in range(height):
 		for x: int in range(width):

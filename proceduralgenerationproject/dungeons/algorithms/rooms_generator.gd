@@ -1,11 +1,10 @@
 # res://dungeons/algorithms/rooms_generator.gd
-#
+
 # random rooms generator
-#
-# how it works:
-#   1. try to place random rectangles on the map without overlapping
-#   2. connect each new room to the previous one with an l-shaped corridor
-#   3. add walls around all floor tiles
+
+# 1. try to place random rectangles on the map without overlapping
+# 2. connect each new room to the previous one with an l-shaped corridor
+# 3. add walls around all floor tiles
 
 extends RefCounted
 
@@ -13,13 +12,10 @@ const TILE_EMPTY: int = 0
 const TILE_FLOOR: int = 1
 const TILE_WALL:  int = 2
 
-# average room is ~11x11 = 121 tiles; multiplied by ~3 to account for
-# corridors, walls, and spacing between rooms, giving roughly one room
-# per 360 tiles of map area
+# average room is 11x11 = 121 tiles; multiplied by 3 to consider corridors, walls, and spacing between rooms -> approx. one room per 360 tiles of map area
 const AREA_PER_ROOM: int = 360
 
 static func generate(width: int, height: int) -> Array:
-	# use a local rng so we don't affect anything outside this function
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
 
@@ -32,9 +28,11 @@ static func generate(width: int, height: int) -> Array:
 		map.append(row)
 
 	var rooms: Array[Rect2] = []
+
 	@warning_ignore("integer_division")
+	# calculate the number of rooms that we can approximately place in the map area
 	var room_count: int = maxi(5, (width * height) / AREA_PER_ROOM)
-	var max_attempts: int = room_count * 10
+	var max_attempts: int = room_count * 10 # based on the room_count, we get at least 10 attempts
 	var tries: int = 0
 
 	# keep trying to place rooms until we reach the target or run out of attempts
@@ -52,7 +50,7 @@ static func generate(width: int, height: int) -> Array:
 
 		var room: Rect2 = Rect2(x, y, w, h)
 
-		# skip this room if it overlaps an existing one (1-tile gap between rooms)
+		# skip this room if it overlaps with an existing one (1-tile gap between rooms)
 		var overlaps: bool = false
 		for other in rooms:
 			if room.grow(1).intersects(other):
@@ -85,6 +83,7 @@ static func generate(width: int, height: int) -> Array:
 static func _carve_corridor(map: Array, from: Vector2, to: Vector2,
 		width: int, height: int, rng: RandomNumberGenerator,
 		corridor_width: int = 2) -> void:
+
 	var fx: int = int(from.x)
 	var fy: int = int(from.y)
 	var tx: int = int(to.x)
