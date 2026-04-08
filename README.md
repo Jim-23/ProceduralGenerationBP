@@ -1,6 +1,4 @@
-# Procedurální generování dungeonů ve 2D hrách
-
-Bakalářská práce — implementace a srovnání pěti algoritmů procedurálního generování dungeonových map v herním enginu Godot.
+# BP - Procedurální generování dungeonů ve 2D hrách
 
 **Autor:** Jesse Sadowý  
 **Vedoucí:** doc. RNDr. Jan Konečný, Ph.D.  
@@ -16,7 +14,7 @@ Bakalářská práce — implementace a srovnání pěti algoritmů proceduráln
 
 ## Požadavky
 
-- [Godot Engine 4.4](https://godotengine.org/download/) (standardní verze)
+- [Godot Engine 4.6.X](https://godotengine.org/download/)
 - Python 3.10+ (volitelné, pouze pro analýzu výsledků)
 
 ## Spuštění aplikace
@@ -26,7 +24,7 @@ Bakalářská práce — implementace a srovnání pěti algoritmů proceduráln
    git clone https://github.com/Jim-23/ProceduralGenerationBP.git
    ```
 2. Otevřete Godot Engine a zvolte **Import** → vyberte soubor `project.godot` ve složce `proceduralgenerationproject/`.
-3. Stiskněte **F5** (nebo tlačítko ▶) pro spuštění projektu.
+3. Spusttě projekt.
 
 ## Ovládání
 
@@ -52,12 +50,12 @@ Grafy budou uloženy do složky `plots/`.
 ## Struktura projektu
 
 ```
-dungeons/algorithms/   — generovací algoritmy (GDScript)
+dungeons/algorithms/   — generovací algoritmy
 scripts/               — herní logika (main, player, coin)
 scenes/                — Godot scény
-assets/                — grafické prostředky (2D Pixel Dungeon Asset Pack)
-plots/                 - Výsledné grafy z analyzátoru
-result_analyser.py     — Python skript pro analýzu a vizualizaci dat
+assets/                — grafické prostředky
+plots/                 - grafy z analyzátoru
+result_analyser.py     — Python skript pro analýzu dat
 results.csv            — naměřená data z benchmarku
 requirements.txt       - Požadované knihovny pro spuštění skriptu result_analyser.py
 ```
