@@ -43,14 +43,30 @@ class Branch:
 			return [self]
 		return left_child.get_leaves() + right_child.get_leaves()
 
-	# returns the center tile of this branch area
-	func get_center() -> Vector2i:
+	# returns the center tile of the actual room inside this leaf (accounts for padding)
+	func get_room_center() -> Vector2i:
 		@warning_ignore("integer_division")
-		return Vector2i(position.x + size.x / 2, position.y + size.y / 2)
+		var rx: int = position.x + padding.x + (size.x - padding.x - padding.z) / 2
+		var ry: int = position.y + padding.y + (size.y - padding.y - padding.w) / 2
+		return Vector2i(rx, ry)
 
-	# splits this branch in two and records the connection for corridor drawing
-	# stops when the branch is too small to split further
-	func split(min_size: int, paths: Array, rng: RandomNumberGenerator) -> void:
+	# collects corridor pairs by connecting one leaf from each sibling subtree
+	func get_corridor_pairs() -> Array:
+		if not (left_child and right_child):
+			return []
+		var pairs: Array = []
+		var left_leaf: Branch  = left_child.get_leaves()[0]
+		var right_leaf: Branch = right_child.get_leaves()[0]
+		pairs.push_back({
+			"left":  left_leaf.get_room_center(),
+			"right": right_leaf.get_room_center()
+		})
+		pairs += left_child.get_corridor_pairs()
+		pairs += right_child.get_corridor_pairs()
+		return pairs
+
+	# splits this branch in two recursively until branches are smaller than min_size
+	func split(min_size: int, rng: RandomNumberGenerator) -> void:
 		# stop if splitting would create branches smaller than the minimum
 		var split_horizontal: bool = size.y >= size.x
 		if split_horizontal and size.y < min_size * 2:
@@ -78,15 +94,9 @@ class Branch:
 				rng
 			)
 
-		# save the two centers so we can draw a corridor between them later
-		paths.push_back({
-			"left":  left_child.get_center(),
-			"right": right_child.get_center()
-		})
-
 		# keep splitting children if they are large enough
-		left_child.split(min_size, paths, rng)
-		right_child.split(min_size, paths, rng)
+		left_child.split(min_size, rng)
+		right_child.split(min_size, rng)
 
 
 static func generate(width: int, height: int) -> Array:
@@ -103,9 +113,11 @@ static func generate(width: int, height: int) -> Array:
 	rng.randomize()
 
 	# build the tree - partitions split until they are smaller than min_size
-	var paths: Array = []
 	var root_branch := Branch.new(Vector2i(1, 1), Vector2i(width - 2, height - 2), rng)
-	root_branch.split(MIN_SIZE, paths, rng)
+	root_branch.split(MIN_SIZE, rng)
+
+	# collect corridor pairs after the full tree is built so endpoints are real room centers
+	var paths: Array = root_branch.get_corridor_pairs()
 
 	# draw each leaf room
 	for leaf in root_branch.get_leaves(): # collect leaf branches - each will be one room

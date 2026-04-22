@@ -1,0 +1,17 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://bp8drad86qyxj"
+
+[deps]
+
+files=["res://results-backup.width.translation", "res://results-backup.height.translation", "res://results-backup.run.translation", "res://results-backup.gen.translation", "res://results-backup.coverage.translation", "res://results-backup.floor.translation"]
+
+source_file="res://results-backup.csv"
+dest_files=["res://results-backup.width.translation", "res://results-backup.height.translation", "res://results-backup.run.translation", "res://results-backup.gen.translation", "res://results-backup.coverage.translation", "res://results-backup.floor.translation"]
+
+[params]
+
+compress=true
+delimiter=0
