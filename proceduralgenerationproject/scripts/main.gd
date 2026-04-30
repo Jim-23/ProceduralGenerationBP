@@ -24,7 +24,7 @@ enum TileType { EMPTY = 0,
 			}
 
 # seed for replicable results
-const SEED:int = 0
+const SEED:int = 1
 
 # positions of tiles in atlas
 const TILE_FLOOR_POS:Vector2i = Vector2i(8, 1)
