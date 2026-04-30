@@ -9,19 +9,40 @@ extends Node2D
 @onready var dungeon_layer: TileMapLayer = $DungeonLayer
 @onready var player: CharacterBody2D = $Player
 
-# import generator scripts
-const CoinScene         = preload("res://scenes/coin.tscn")
-const RoomsGenerator    = preload("res://dungeons/algorithms/rooms_generator.gd")
-const BSPGenerator      = preload("res://dungeons/algorithms/bsp_generator.gd")
+# ui interactive buttons and spinboxes 
+@onready var dungeon_type_option: OptionButton = $UI/Panel/VBoxContainer/Buttons/DungeonType
+@onready var width_input: SpinBox = $UI/Panel/VBoxContainer/Buttons/Width
+@onready var height_input: SpinBox = $UI/Panel/VBoxContainer/Buttons/Height
+@onready var generate_button: Button = $UI/Panel/VBoxContainer/Buttons/GenerateButton
+@onready var benchmark_button: Button = $UI/Panel/VBoxContainer/Buttons/BenchmarkButton
+
+#TODO add to gui in the engine
+@onready var benchmark_input: SpinBox = $UI/Panel/VBoxContainer/Buttons/BenchmarkInput
+@onready var seed_input: SpinBox = $UI/Panel/VBoxContainer/Buttons/SeedInput
+@onready var seed_checkbox: CheckBox = $UI/Panel/VBoxContainer/Buttons/SeedCheckbox
+@onready var progress_bar: ProgressBar = $UI/Panel/VBoxContainer/ProgressBar
+
+# UI labels
+@onready var gen_time_label:  Label = $UI/Panel/VBoxContainer/Stats/GenTimeLabel
+@onready var floor_label:     Label = $UI/Panel/VBoxContainer/Stats/FloorLabel
+@onready var coverage_label:  Label = $UI/Panel/VBoxContainer/Stats/CoverageLabel
+@onready var size_label:      Label = $UI/Panel/VBoxContainer/Stats/SizeLabel
+@onready var status_label:    Label = $UI/Panel/VBoxContainer/Stats/StatusLabel
+@onready var coins_label: Label = $UI/CoinsLabel
+
+# import generators scripts + coin scene
+const CoinScene = preload("res://scenes/coin.tscn")
+const RoomsGenerator = preload("res://dungeons/algorithms/rooms_generator.gd")
+const BSPGenerator = preload("res://dungeons/algorithms/bsp_generator.gd")
 const CellularGenerator = preload("res://dungeons/algorithms/cellular_generator.gd")
-const DrunkardsGenerator  = preload("res://dungeons/algorithms/drunkards_generator.gd")
-const MazeGenerator     = preload("res://dungeons/algorithms/maze_generator.gd")
+const DrunkardsGenerator = preload("res://dungeons/algorithms/drunkards_generator.gd")
+const MazeGenerator = preload("res://dungeons/algorithms/maze_generator.gd")
 
 # tile types - must match the constants in each generator
 enum TileType { EMPTY = 0, 
 				FLOOR = 1, 
 				WALL = 2 
-			}
+}
 
 # seed for replicable results
 const SEED:int = 1
@@ -42,6 +63,9 @@ const PLAYER_COLLISION_OFFSET: Vector2 = Vector2(49.0, 6.0)
 const MIN_COINS: int = 5
 const MAX_COINS: int = 50
 
+# We need more runs! (At least 1000 results per alg - 200 runs)
+const BENCHMARK_RUNS: int = 200
+
 # map sizes for the benchmark
 const BENCHMARK_SIZES = [
 	Vector2i(60, 60),
@@ -51,29 +75,12 @@ const BENCHMARK_SIZES = [
 	Vector2i(70, 30)
 ]
 
-# TODO edit this, we need more results! (At least 1000 per alg) - how many times the benchmark runs 
-const BENCHMARK_RUNS = 10
-
 # init of empty variables for coins so we can work with them later
 var _coins_collected: int = 0
 var _coins_total: int = 0
 var _spawned_coins: Array[Node] = []
 
-# ui references
-@onready var dungeon_type_option: OptionButton = $UI/Panel/VBoxContainer/Buttons/DungeonType
-@onready var width_input: SpinBox = $UI/Panel/VBoxContainer/Buttons/Width
-@onready var height_input: SpinBox = $UI/Panel/VBoxContainer/Buttons/Height
-@onready var generate_button: Button = $UI/Panel/VBoxContainer/Buttons/GenerateButton
-@onready var benchmark_button: Button = $UI/Panel/VBoxContainer/Buttons/BenchmarkButton
-@onready var seed_input: SpinBox = $UI/Panel/VBoxContainer/Buttons/SeedInput
-@onready var seed_checkbox: CheckBox = $UI/Panel/VBoxContainer/Buttons/SeedCheckbox
 
-@onready var gen_time_label:  Label = $UI/Panel/VBoxContainer/Stats/GenTimeLabel
-@onready var floor_label:     Label = $UI/Panel/VBoxContainer/Stats/FloorLabel
-@onready var coverage_label:  Label = $UI/Panel/VBoxContainer/Stats/CoverageLabel
-@onready var size_label:      Label = $UI/Panel/VBoxContainer/Stats/SizeLabel
-@onready var status_label:    Label = $UI/Panel/VBoxContainer/Stats/StatusLabel
-@onready var coins_label: Label = $UI/CoinsLabel
 
 func _ready() -> void:
 	# hide the player at start - it will appear after the first generation
@@ -92,6 +99,7 @@ func _ready() -> void:
 	# set default width and height to input values in the UI
 	width_input.value  = DUNGEON_WIDTH
 	height_input.value = DUNGEON_HEIGHT
+	benchmark_input = BENCHMARK_RUNS
 	seed_input.value = SEED
 
 
@@ -108,17 +116,18 @@ func _reset_coins_state() -> void:
 	coins_label.text = "Coins: 0/0"
 
 func _on_generate_button_pressed() -> void:
+
+	status_label.text = ""
 	# hide the player while generating - it will be shown again after placement
 	if player:
 		player.hide()
 	
 	# disable generate button so the user can't press it while processing
 	generate_button.disabled = true
-		
-	# reset coins
+
 	_reset_coins_state()
 
-	# get choosen width and height
+	# get choosen width and height + seed if checked
 	var width: int = int(width_input.value)
 	var height: int = int(height_input.value)
 	var seed: int = int(seed_input.value) if seed_checkbox.button_pressed else 0
@@ -136,8 +145,8 @@ func _on_generate_button_pressed() -> void:
 		3: map = CellularGenerator.generate(width, height, seed)
 		4: map = MazeGenerator.generate(width, height, seed)
 		_:
-			push_warning("Unknown dungeon type selected.")
-			return
+		push_warning("Unknown dungeon type selected.")
+		return
 
 	# end timer and get time in ms
 	var t_end: int = Time.get_ticks_usec()
@@ -192,11 +201,21 @@ func run_benchmark() -> void:
 		{"name":"Maze", "func": MazeGenerator.generate}
 	]
 
+	# get number of benchmark runs
+	var benchmark_runs: int = int(benchmark_input.value)
+	# get seed value if checked
+	var seed: int = int(seed_input.value) if seed_checkbox.button_pressed else 0
+
+	# setup progress bar min and max
+	var total_runs = algorithms.size() * BENCHMARK_SIZES.size() * benchmark_runs
+	progress_bar.max_value = total_runs
+	progress_bar.value = 0
+
 	for algo in algorithms:
 
 		for size in BENCHMARK_SIZES:
 
-			for run in range(BENCHMARK_RUNS):
+			for run in range(benchmark_runs):
 
 				var width = size.x
 				var height = size.y
@@ -222,6 +241,11 @@ func run_benchmark() -> void:
 				)
 
 				print(algo.name, " ", width, "x", height, " run ", run, " done")
+				# update progress bar
+				progress_bar.value += 1
+				await get_tree().process_frame  # this will ensure the UI updates
+
+	pass
 
 func _update_camera_limits(map_width: int, map_height: int) -> void:
 
@@ -466,5 +490,9 @@ func _log_results(algorithm:String, width:int, height:int, run:int, gen_time:flo
 
 func _on_benchmark_button_pressed() -> void:
 	generate_button.disabled = true
-	run_benchmark()
+	benchmark_button.disabled = true
+	status_label.text = "Benchmark is running ..."
+	await run_benchmark()
+	status_label.text = "Benchmark has finished. Data were saved to results.csv"
 	generate_button.disabled = false
+	benchmark_button.disabled = false
