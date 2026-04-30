@@ -23,6 +23,9 @@ enum TileType { EMPTY = 0,
 				WALL = 2 
 			}
 
+# seed for replicable results
+const SEED:int = 0
+
 # positions of tiles in atlas
 const TILE_FLOOR_POS:Vector2i = Vector2i(8, 1)
 const TILE_WALL_POS: Vector2i = Vector2i(2, 0)
@@ -48,10 +51,10 @@ const BENCHMARK_SIZES = [
 	Vector2i(70, 30)
 ]
 
-# how many times the benchmark runs
+# TODO edit this, we need more results! (At least 1000 per alg) - how many times the benchmark runs 
 const BENCHMARK_RUNS = 10
 
-# init of empty variables so we can work with them later
+# init of empty variables for coins so we can work with them later
 var _coins_collected: int = 0
 var _coins_total: int = 0
 var _spawned_coins: Array[Node] = []
@@ -87,6 +90,7 @@ func _ready() -> void:
 	# set default width and height to input values in the UI
 	width_input.value  = DUNGEON_WIDTH
 	height_input.value = DUNGEON_HEIGHT
+	seed_input.value = SEED
 
 
 func _reset_coins_state() -> void:
@@ -113,8 +117,9 @@ func _on_generate_button_pressed() -> void:
 	_reset_coins_state()
 
 	# get choosen width and height
-	var width:  int = int(width_input.value)
+	var width: int = int(width_input.value)
 	var height: int = int(height_input.value)
+	var seed: int = int(seed_input.value)
 
 
 	# generate selected dungeon
@@ -123,11 +128,11 @@ func _on_generate_button_pressed() -> void:
 
 	var map: Array = []
 	match dungeon_type_option.selected:
-		0: map = RoomsGenerator.generate(width, height)
-		1: map = BSPGenerator.generate(width, height)
-		2: map = DrunkardsGenerator.generate(width, height)
-		3: map = CellularGenerator.generate(width, height)
-		4: map = MazeGenerator.generate(width, height)
+		0: map = RoomsGenerator.generate(width, height, seed)
+		1: map = BSPGenerator.generate(width, height, seed)
+		2: map = DrunkardsGenerator.generate(width, height, seed)
+		3: map = CellularGenerator.generate(width, height, seed)
+		4: map = MazeGenerator.generate(width, height, seed)
 		_:
 			push_warning("Unknown dungeon type selected.")
 			return
@@ -172,7 +177,10 @@ func _on_generate_button_pressed() -> void:
 	generate_button.disabled = false
 
 
-func run_benchmark() -> void:
+func run_benchmark() -> void: 
+	# TODO add more benchmarks with specific seed!
+	# TODO add status label and progress bar or something so you can see something is happening during benchmark
+	# TODO maybe spinning character to make it more interesting?
 
 	var algorithms = [
 		{"name":"Rooms", "func": RoomsGenerator.generate},
@@ -192,7 +200,7 @@ func run_benchmark() -> void:
 				var height = size.y
 
 				var t_start = Time.get_ticks_usec()
-				var map = algo.func.call(width, height)
+				var map = algo.func.call(width, height, seed)
 				var t_end = Time.get_ticks_usec()
 
 				var gen_ms = (t_end - t_start) / 1000.0
