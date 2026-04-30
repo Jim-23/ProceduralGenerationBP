@@ -15,9 +15,12 @@ const TILE_WALL:  int = 2
 # average room is 11x11 = 121 tiles; multiplied by 3 to consider corridors, walls, and spacing between rooms -> approx. one room per 360 tiles of map area
 const AREA_PER_ROOM: int = 360
 
-static func generate(width: int, height: int) -> Array:
+static func generate(width: int, height: int, seed: int) -> Array:
 	var rng := RandomNumberGenerator.new()
-	rng.randomize()
+	if seed == 0:
+		rng.randomize()
+	else:
+		rng.seed = seed
 
 	# start with an empty map
 	var map: Array = []
@@ -29,7 +32,7 @@ static func generate(width: int, height: int) -> Array:
 
 	var rooms: Array[Rect2] = []
 
-	@warning_ignore("integer_division")
+	@warning_ignore("integer_division") # it was annoying so I ignore it but could make a mess in the future
 	# calculate the number of rooms that we can approximately place in the map area
 	var room_count: int = maxi(5, (width * height) / AREA_PER_ROOM)
 	var max_attempts: int = room_count * 10 # based on the room_count, we get at least 10 attempts

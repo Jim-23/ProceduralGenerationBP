@@ -65,6 +65,8 @@ var _spawned_coins: Array[Node] = []
 @onready var height_input: SpinBox = $UI/Panel/VBoxContainer/Buttons/Height
 @onready var generate_button: Button = $UI/Panel/VBoxContainer/Buttons/GenerateButton
 @onready var benchmark_button: Button = $UI/Panel/VBoxContainer/Buttons/BenchmarkButton
+@onready var seed_input: SpinBox = $UI/Panel/VBoxContainer/Buttons/SeedInput
+@onready var seed_checkbox: CheckBox = $UI/Panel/VBoxContainer/Buttons/SeedCheckbox
 
 @onready var gen_time_label:  Label = $UI/Panel/VBoxContainer/Stats/GenTimeLabel
 @onready var floor_label:     Label = $UI/Panel/VBoxContainer/Stats/FloorLabel
@@ -119,7 +121,7 @@ func _on_generate_button_pressed() -> void:
 	# get choosen width and height
 	var width: int = int(width_input.value)
 	var height: int = int(height_input.value)
-	var seed: int = int(seed_input.value)
+	var seed: int = int(seed_input.value) if seed_checkbox.button_pressed else 0
 
 
 	# generate selected dungeon

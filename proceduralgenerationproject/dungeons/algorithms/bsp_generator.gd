@@ -99,7 +99,7 @@ class Branch:
 		right_child.split(min_size, rng)
 
 
-static func generate(width: int, height: int) -> Array:
+static func generate(width: int, height: int, seed: int) -> Array:
 	# start with an empty map
 	var map: Array = []
 	for y: int in range(height):
@@ -110,7 +110,10 @@ static func generate(width: int, height: int) -> Array:
 
 	# one rng shared across the whole tree
 	var rng := RandomNumberGenerator.new()
-	rng.randomize()
+	if seed == 0:
+		rng.randomize()
+	else:
+		rng.seed = seed
 
 	# build the tree - partitions split until they are smaller than min_size
 	var root_branch := Branch.new(Vector2i(1, 1), Vector2i(width - 2, height - 2), rng)
