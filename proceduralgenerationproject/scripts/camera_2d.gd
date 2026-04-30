@@ -48,9 +48,13 @@ func _unhandled_input(event: InputEvent) -> void:
 	# if the pressed key is R, reenable the follow mode
 	if event is InputEventKey:
 		var key_event: InputEventKey = event
-		if key_event.pressed and not key_event.echo and key_event.keycode == follow_key:
-			_follow_enabled = true
-			_is_panning = false
+		if key_event.pressed and not key_event.echo:
+			if key_event.keycode == follow_key:
+				_follow_enabled = true
+				_is_panning = false
+			elif key_event.keycode in [KEY_W, KEY_A, KEY_S, KEY_D]:
+				_follow_enabled = true
+				_is_panning = false
 		return
 
 	if event is InputEventMouseButton:
@@ -73,6 +77,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if mb.pressed and mb.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			_set_zoom(zoom.x + zoom_step)
 			return
+
 
 	if event is InputEventMouseMotion and _is_panning:
 		var mm: InputEventMouseMotion = event
