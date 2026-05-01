@@ -132,6 +132,6 @@ static func _add_walls(map: Array, width: int, height: int) -> void:
 					for dx: int in range(-1, 2):
 						var nx: int = x + dx
 						var ny: int = y + dy
-						if _in_bounds(nx, ny, width, height):
+						if nx >= 0 and nx < width and ny >= 0 and ny < height:
 							if (map[ny] as Array)[nx] == TILE_EMPTY:
 								(map[ny] as Array)[nx] = TILE_WALL

@@ -212,6 +212,7 @@ func run_benchmark() -> void:
 	print("Total runs: ", total_runs)
 	print("Progress per run: ", progress_per_run)
 	progress_bar.max_value = 100.0
+	progress_bar.step = progress_per_run
 	progress_bar.value = 0.0
 
 	for algo in algorithms:
