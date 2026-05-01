@@ -47,6 +47,7 @@ class Branch:
 	func get_room_center() -> Vector2i:
 		@warning_ignore("integer_division")
 		var rx: int = position.x + padding.x + (size.x - padding.x - padding.z) / 2
+		@warning_ignore("integer_division")
 		var ry: int = position.y + padding.y + (size.y - padding.y - padding.w) / 2
 		return Vector2i(rx, ry)
 
@@ -99,7 +100,7 @@ class Branch:
 		right_child.split(min_size, rng)
 
 
-static func generate(width: int, height: int, seed: int) -> Array:
+static func generate(width: int, height: int, seed_value: int) -> Array:
 	# start with an empty map
 	var map: Array = []
 	for y: int in range(height):
@@ -110,10 +111,10 @@ static func generate(width: int, height: int, seed: int) -> Array:
 
 	# one rng shared across the whole tree
 	var rng := RandomNumberGenerator.new()
-	if seed == 0:
+	if seed_value == 0:
 		rng.randomize()
 	else:
-		rng.seed = seed
+		rng.seed = seed_value
 
 	# build the tree - partitions split until they are smaller than min_size
 	var root_branch := Branch.new(Vector2i(1, 1), Vector2i(width - 2, height - 2), rng)

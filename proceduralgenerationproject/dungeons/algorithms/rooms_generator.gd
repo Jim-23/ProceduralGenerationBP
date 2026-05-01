@@ -15,12 +15,12 @@ const TILE_WALL:  int = 2
 # average room is 11x11 = 121 tiles; multiplied by 3 to consider corridors, walls, and spacing between rooms -> approx. one room per 360 tiles of map area
 const AREA_PER_ROOM: int = 360
 
-static func generate(width: int, height: int, seed: int) -> Array:
+static func generate(width: int, height: int, seed_value: int) -> Array:
 	var rng := RandomNumberGenerator.new()
-	if seed == 0:
+	if seed_value == 0:
 		rng.randomize()
 	else:
-		rng.seed = seed
+		rng.seed = seed_value
 
 	# start with an empty map
 	var map: Array = []

@@ -17,7 +17,7 @@ const TILE_WALL: int = 2
 
 const TARGET_COVERAGE: int = 50
 
-static func generate(width: int, height: int, seed: int) -> Array:
+static func generate(width: int, height: int, seed_value: int) -> Array:
 	# start with an empty map
 	var map: Array = []
 	for y: int in range(height):
@@ -27,10 +27,10 @@ static func generate(width: int, height: int, seed: int) -> Array:
 		map.append(row)
 
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
-	if seed == 0:
+	if seed_value == 0:
 		rng.randomize()
 	else:
-		rng.seed = seed
+		rng.seed = seed_value
 
 	# start the walk at the center
 	@warning_ignore("integer_division")

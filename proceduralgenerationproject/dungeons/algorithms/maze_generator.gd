@@ -29,7 +29,7 @@ static var cell_walls := {
 }
 
 
-static func generate(width: int, height: int, seed: int) -> Array:
+static func generate(width: int, height: int, seed_value: int) -> Array:
 	# start with an empty map
 	var map: Array = []
 	for y: int in range(height):
@@ -61,10 +61,10 @@ static func generate(width: int, height: int, seed: int) -> Array:
 	unvisited.erase(current_cell)  # starting cell is visited immediately
 
 	var rng := RandomNumberGenerator.new()
-	if seed == 0:
+	if seed_value == 0:
 		rng.randomize()
 	else:
-		rng.seed = seed
+		rng.seed = seed_value
 
 	while unvisited.size() > 0:
 		# get unvisited neighbours of the current cell

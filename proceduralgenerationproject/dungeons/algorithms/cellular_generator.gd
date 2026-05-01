@@ -18,12 +18,12 @@ const FILL_PROBABILITY: float = 0.45
 # more steps -> more coverage but higher time
 const SIMULATION_STEPS: int = 5
 
-static func generate(width: int, height: int, seed: int) -> Array:
+static func generate(width: int, height: int, seed_value: int) -> Array:
 	var rng := RandomNumberGenerator.new()
-	if seed == 0:
+	if seed_value == 0:
 		rng.randomize()
 	else:
-		rng.seed = seed
+		rng.seed = seed_value
 
 
 	var map: Array = []
