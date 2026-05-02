@@ -10,12 +10,15 @@ df["run"] = pd.to_numeric(df["run"], errors="coerce")
 df["gen_time_ms"] = pd.to_numeric(df["gen_time_ms"], errors="coerce")
 df["coverage"] = pd.to_numeric(df["coverage"], errors="coerce")
 
-# only keep valid runs (0 to 9)
-df = df[df["run"].between(0, 9)].copy()
+# only keep valid runs
+df = df[df["run"].notna()].copy()
 
 # add helper columns
 df["cells"] = df["width"] * df["height"]
 df["size"] = df["width"].astype(str) + "x" + df["height"].astype(str)
+
+# compute runs per config for plot labels
+n_runs = int(df.groupby(["algorithm", "size"])["run"].count().median())
 
 # get unique values for looping
 algorithms = sorted(df["algorithm"].unique())
@@ -75,7 +78,7 @@ annotate_bars()
 
 plt.xlabel("Algorithm")
 plt.ylabel("Average generation time [ms]")
-plt.title("Average Generation Time - All Algorithms\n(across all map sizes, 10 runs each)")
+plt.title(f"Average Generation Time - All Algorithms\n(across all map sizes, {n_runs} runs each)")
 save("comparison_avg_time.png")
 
 # 2. bar chart  - average coverage per algorithm
@@ -85,7 +88,7 @@ plt.bar(algorithms, avg_cov, color=["#4C72B0", "#DD8452", "#55A868", "#C44E52", 
 annotate_bars()
 plt.xlabel("Algorithm")
 plt.ylabel("Average coverage [%]")
-plt.title("Average Coverage - All Algorithms\n(across all map sizes, 10 runs each)")
+plt.title(f"Average Coverage - All Algorithms\n(across all map sizes, {n_runs} runs each)")
 save("comparison_avg_coverage.png")
 
 # 3. eneration time vs map size
@@ -104,7 +107,7 @@ size_map = {c: df[df["cells"] == c]["size"].iloc[0] for c in cells_list}
 plt.xticks(cells_list, [size_map[c] for c in cells_list], rotation=20)
 plt.xlabel("Map size (width × height)")
 plt.ylabel("Generation time [ms]")
-plt.title("Generation Time Scaling\n(mean ± std, 10 runs per size)")
+plt.title(f"Generation Time Scaling\n(mean ± std, {n_runs} runs per size)")
 plt.legend()
 save("comparison_time_scaling.png")
 
@@ -125,7 +128,7 @@ size_map = {c: df[df["cells"] == c]["size"].iloc[0] for c in cells_list}
 plt.xticks(cells_list, [size_map[c] for c in cells_list], rotation=20)
 plt.xlabel("Map size (width × height)")
 plt.ylabel("Coverage [%]")
-plt.title("Coverage Scaling\n(mean ± std, 10 runs per size)")
+plt.title(f"Coverage Scaling\n(mean ± std, {n_runs} runs per size)")
 plt.legend()
 save("comparison_coverage_scaling.png")
 
@@ -141,7 +144,7 @@ for size_label in sizes:
     annotate_bars(yerr=stds)
     plt.xlabel("Algorithm")
     plt.ylabel("Generation time [ms]")
-    plt.title(f"Generation Time Comparison - Map {size_label}\n(mean ± std, 10 runs)")
+    plt.title(f"Generation Time Comparison - Map {size_label}\n(mean ± std, {n_runs} runs)")
     save(f"comparison_time_{size_label}.png")
 
 # 6. grouped bar chart - coverage per size, grouped by algorithm
@@ -156,7 +159,7 @@ for size_label in sizes:
     annotate_bars(yerr=stds)
     plt.xlabel("Algorithm")
     plt.ylabel("Coverage [%]")
-    plt.title(f"Coverage Comparison - Map {size_label}\n(mean ± std, 10 runs)")
+    plt.title(f"Coverage Comparison - Map {size_label}\n(mean ± std, {n_runs} runs)")
     save(f"comparison_coverage_{size_label}.png")
 
 # 7. trade-off scatter: time vs coverage
@@ -175,7 +178,7 @@ for i, alg in enumerate(algorithms):
                  textcoords="offset points", xytext=(8, 5), fontsize=8)
 plt.xlabel("Average generation time [ms]")
 plt.ylabel("Average coverage [%]")
-plt.title("Trade-off: Speed vs Coverage\n(across all map sizes, 10 runs each)")
+plt.title(f"Trade-off: Speed vs Coverage\n(across all map sizes, {n_runs} runs each)")
 plt.legend()
 plt.grid(True, alpha=0.3)
 save("comparison_tradeoff.png")
@@ -198,7 +201,7 @@ for alg in algorithms:
     annotate_bars(yerr=alg_summary["time_std"])
     plt.xlabel("Map size")
     plt.ylabel("Generation time [ms]")
-    plt.title(f"{alg} - Generation Time by Map Size\n(mean ± std, 10 runs)")
+    plt.title(f"{alg} - Generation Time by Map Size\n(mean ± std, {n_runs} runs)")
 
     save(f"{alg.lower()}_time_by_size.png")
 
@@ -211,7 +214,7 @@ for alg in algorithms:
 
     plt.xlabel("Map size")
     plt.ylabel("Coverage [%]")
-    plt.title(f"{alg} - Coverage by Map Size\n(mean ± std, 10 runs)")
+    plt.title(f"{alg} - Coverage by Map Size\n(mean ± std, {n_runs} runs)")
     save(f"{alg.lower()}_coverage_by_size.png")
 
     # individual runs - time
@@ -223,7 +226,7 @@ for alg in algorithms:
     plt.ylabel("Generation time [ms]")
     plt.title(f"{alg} - Generation Time per Run")
     plt.legend(title="Map size")
-    plt.xticks(range(10))
+    plt.xticks(range(0, n_runs, max(1, n_runs // 10)))
     save(f"{alg.lower()}_time_per_run.png")
 
     # individual runs - coverage 
@@ -235,7 +238,7 @@ for alg in algorithms:
     plt.ylabel("Coverage [%]")
     plt.title(f"{alg} - Coverage per Run")
     plt.legend(title="Map size")
-    plt.xticks(range(10))
+    plt.xticks(range(0, n_runs, max(1, n_runs // 10)))
     save(f"{alg.lower()}_coverage_per_run.png")
 
     # boxplot - time distribution per size
