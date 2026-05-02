@@ -195,7 +195,7 @@ theme_override_font_sizes/font_size = 40
 text = "Coins: --/--"
 
 [node name="Camera2D2" type="Camera2D" parent="."]
-position = Vector2(85, 5)
+position = Vector2(68, 8)
 scale = Vector2(1, 6.44)
 zoom = Vector2(4, 4)
 editor_draw_limits = true
