@@ -263,8 +263,8 @@ func _update_camera_limits(map_width: int, map_height: int) -> void:
 		# try to find camera as sibling in main scene
 		camera = get_node_or_null("Camera2D")
 	
+	# if camera is still null, return
 	if camera == null:
-		push_warning("No Camera2D found!")
 		return
 
 	# get current tile sizes and set the limits
@@ -433,8 +433,13 @@ func _place_coins_on_floor(floor_tiles: Array[Vector2i]) -> void:
 
 	# pick a random coin_count between MIN and MAX, still consideres the floor count
 	var coin_count: int = randi_range(MIN_COINS, MAX_COINS)
+	# filter to only tiles with a clear 3x3 area so coins aren't stuck in corners
+	var main_region_set: Dictionary = _build_tile_set(main_region)
+	var open_tiles: Array[Vector2i] = main_region.filter(
+		func(t): return _is_clear_3x3_center(t, main_region_set) #lambda function for returning true/false area for the coin
+	)
 	# duplicate and shuffle the region so we pick random positions
-	var shuffled: Array[Vector2i] = main_region.duplicate()
+	var shuffled: Array[Vector2i] = (open_tiles if not open_tiles.is_empty() else main_region).duplicate()
 	shuffled.shuffle()
 
 	# cap coin count to available floor tiles in case the region is small
