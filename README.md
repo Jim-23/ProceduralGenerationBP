@@ -14,17 +14,32 @@
 
 ## Požadavky
 
-- [Godot Engine 4.6.X](https://godotengine.org/download/)
+- [Godot Engine 4.6.X](https://godotengine.org/download/) (volitelné, pouze pokud nechcete využít připravený spustitelný soubor)
 - Python 3.10+ (volitelné, pouze pro analýzu výsledků)
 
 ## Spuštění aplikace
+
+### Možnost A – spustitelný soubor (doporučeno)
+
+Ve složce `executables/` jsou připraveny předkompilované spustitelné soubory:
+
+- **macOS** – otevřete `ProceduralGenerationProject_MacOS.dmg` a spusťte aplikaci.
+- **Windows** – spusťte `ProceduralGenerationProject_WIN.exe`.
+
+> **Poznámka:** Výsledky benchmarku (`results.csv`) se uloží do systémové složky aplikace:
+> - **macOS:** `~/Library/Application Support/Godot/app_userdata/<název projektu>/results.csv`
+> - **Windows:** `C:\Users\<uživatel>\AppData\Roaming\Godot\app_userdata\<název projektu>\results.csv`
+>
+> Přesná cesta se zobrazí ve statusovém řádku po dokončení benchmarku.
+
+### Možnost B – spuštění v Godot Engine
 
 1. Stáhněte nebo naklonujte repozitář:
    ```
    git clone https://github.com/Jim-23/ProceduralGenerationBP.git
    ```
 2. Otevřete Godot Engine a zvolte **Import** → vyberte soubor `project.godot` ve složce `proceduralgenerationproject/`.
-3. Spusttě projekt.
+3. Spusťte projekt.
 
 ## Ovládání
 
