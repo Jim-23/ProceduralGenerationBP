@@ -1,4 +1,4 @@
-# Bachelor's Thesis – Procedural Dungeon Generation in 2D Games
+# Procedural Dungeon Generation in 2D Games
 
 **Author:** Jesse Sadowý  
 **Supervisor:** Jan Konečný, Ph.D.  
